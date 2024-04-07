@@ -33,20 +33,7 @@ func AuthorizationEndpoint(c echo.Context) error {
 	// We're simplifying things and just checking if the request includes a valid username and password
 	req.ParseForm()
 	if req.PostForm.Get("username") != "peter" {
-		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
-		rw.Write([]byte(`<h1>Login page</h1>`))
-		rw.Write([]byte(fmt.Sprintf(`
-			<p>Howdy! This is the log in page. For this example, it is enough to supply the username.</p>
-			<form method="post">
-				<p>
-					By logging in, you consent to grant these scopes:
-					<ul>%s</ul>
-				</p>
-				<input type="text" name="username" /> <small>try peter</small><br>
-				<input type="submit">
-			</form>
-		`, requestedScopes)))
-		return nil
+		return c.File("resources/login.html")
 	}
 
 	// let's see what scopes the user gave consent to
