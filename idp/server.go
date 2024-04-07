@@ -16,7 +16,7 @@ func main() {
 	e.GET("/oauth2/auth", oauth2.AuthorizationEndpoint)
 	e.POST("/oauth2/auth", oauth2.AuthorizationEndpoint)
 	e.POST("/oauth2/token", oauth2.TokenEndpoint)
-	// e.HandleFunc("/oauth2/introspect", oauth2.IntrospectionEndpoint)
+	e.POST("/oauth2/introspect", oauth2.IntrospectionEndpoint)
 
 	e.Logger.Fatal(e.Start(":3846"))
 }
