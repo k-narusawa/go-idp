@@ -141,13 +141,11 @@ func (s *IdpStorage) RevokeRefreshToken(ctx context.Context, requestID string) e
 }
 
 func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) error {
-	log.Printf("CreateOpenIDConnectSession: %+v", authorizeCode)
 	s.IDSessions.Store(authorizeCode, requester)
 	return nil
 }
 
 func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
-	log.Printf("GetOpenIDConnectSession: %+v", authorizeCode)
 	ac, ok := s.IDSessions.Load(authorizeCode)
 	if ok {
 		return ac.(fosite.Requester), nil

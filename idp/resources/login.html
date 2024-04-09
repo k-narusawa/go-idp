@@ -7,10 +7,7 @@
 <body>
   <h1>Login page</h1>
   <form method="post">
-    <p>
-      By logging in, you consent to grant these scopes:
-      <ul>%s</ul>
-    </p>
+    <input type="hidden" name="scope" value="openid" />
     <input type="text" name="username" value="peter" />
     <input type="submit">
   </form>
