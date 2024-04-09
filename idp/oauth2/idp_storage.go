@@ -19,7 +19,7 @@ type IdpStorage struct {
 	Users              []models.User
 	IDSessions         sync.Map
 	AuthorizationCodes sync.Map
-	AccessTokens       sync.Map
+	AccessTokens       []models.AccessToken
 	RefreshTokens      sync.Map
 }
 
@@ -72,21 +72,48 @@ func (s *IdpStorage) SetClientAssertionJWT(_ context.Context, jti string, exp ti
 }
 
 func (s *IdpStorage) CreateAccessTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
-	s.AccessTokens.Store(signature, request)
+	db := infrastructure.Connect()
+
+	at := models.FromRequester(signature, request)
+	result := db.Create(&at)
+
+	if result.Error != nil {
+		log.Printf("Error occurred in CreateAccessTokenSession: %+v", result.Error)
+		return result.Error
+	}
+
 	return nil
 }
 
 func (s *IdpStorage) GetAccessTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
-	at, ok := s.AccessTokens.Load(signature)
-	if ok {
-		return at.(fosite.Requester), nil
+	db := infrastructure.Connect()
+
+	var at models.AccessToken
+	result := db.Where("signature=?", signature).First(&at)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			log.Printf("No record found for signature: %s", signature)
+			return nil, fosite.ErrNotFound
+		}
+		log.Printf("Error occurred in GetAccessTokenSession: %+v", result.Error)
+		return nil, result.Error
 	}
 
-	return nil, fosite.ErrNotFound
+	log.Printf("GetAccessTokenSession: %+v", at)
+
+	return at.ToRequester(), nil
 }
 
 func (s *IdpStorage) DeleteAccessTokenSession(ctx context.Context, signature string) (err error) {
-	s.AccessTokens.Delete(signature)
+	db := infrastructure.Connect()
+
+	result := db.Where("signature=?", signature).Delete(&models.AccessToken{})
+	if result.Error != nil {
+		log.Printf("Error occurred in DeleteAccessTokenSession: %+v", result.Error)
+		return result.Error
+	}
+
 	return nil
 }
 
