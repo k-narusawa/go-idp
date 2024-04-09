@@ -1,7 +1,6 @@
 package oauth2
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/labstack/echo/v4"
@@ -20,12 +19,6 @@ func AuthorizationEndpoint(c echo.Context) error {
 		log.Printf("Error occurred in NewAuthorizeRequest: %+v", err)
 		oauth2.WriteAuthorizeError(rw, ar, err)
 		return err
-	}
-	// You have now access to authorizeRequest, Code ResponseTypes, Scopes ...
-
-	var requestedScopes string
-	for _, this := range ar.GetRequestedScopes() {
-		requestedScopes += fmt.Sprintf(`<li><input type="checkbox" name="scopes" value="%s">%s</li>`, this, this)
 	}
 
 	// Normally, this would be the place where you would check if the user is logged in and gives his consent.
