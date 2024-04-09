@@ -7,7 +7,6 @@ import (
 
 	"github.com/ory/fosite/compose"
 	"github.com/ory/fosite/handler/openid"
-	"github.com/ory/fosite/storage"
 	"github.com/ory/fosite/token/jwt"
 )
 
@@ -20,13 +19,6 @@ import (
 var (
 	// Check the api documentation of `compose.Config` for further configuration options.
 	config = &compose.Config{}
-
-	// This is the example storage that contains:
-	// * an OAuth2 Client with id "my-client" and secrets "foobar" and "foobaz" capable of all oauth2 and open id connect grant and response types.
-	// * a User for the resource owner password credentials grant type with username "peter" and password "secret".
-	//
-	// You will most likely replace this with your own logic once you set up a real world application.
-	store = storage.NewExampleStore()
 
 	// This secret is used to sign authorize codes, access and refresh tokens.
 	// It has to be 32-bytes long for HMAC signing. This requirement can be configured via `compose.Config` above.
@@ -60,7 +52,25 @@ var (
 )
 
 // Build a fosite instance with all OAuth2 and OpenID Connect handlers enabled, plugging in our configurations as specified above.
-var oauth2 = compose.ComposeAllEnabled(config, store, secret, privateKey)
+var oauth2 = compose.Compose(
+	config,
+	NewIdpStorage(),
+	&compose.CommonStrategy{
+		CoreStrategy:               compose.NewOAuth2HMACStrategy(config, secret, nil),
+		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(config, privateKey),
+		JWTStrategy: &jwt.RS256JWTStrategy{
+			PrivateKey: privateKey,
+		},
+	},
+	nil,
+
+	compose.OAuth2AuthorizeExplicitFactory,
+	compose.OAuth2ClientCredentialsGrantFactory,
+
+	compose.OpenIDConnectExplicitFactory,
+
+	compose.OAuth2TokenIntrospectionFactory,
+)
 
 func newSession(user string) *openid.DefaultSession {
 	return &openid.DefaultSession{

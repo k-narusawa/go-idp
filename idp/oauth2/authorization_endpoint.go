@@ -11,7 +11,6 @@ func AuthorizationEndpoint(c echo.Context) error {
 	rw := c.Response()
 	req := c.Request()
 
-	// This context will be passed to all methods.
 	ctx := req.Context()
 
 	// Let's create an AuthorizeRequest object!
@@ -68,6 +67,7 @@ func AuthorizationEndpoint(c echo.Context) error {
 	// Now we need to get a response. This is the place where the AuthorizeEndpointHandlers kick in and start processing the request.
 	// NewAuthorizeResponse is capable of running multiple response type handlers which in turn enables this library
 	// to support open id connect.
+	ar.SetResponseTypeHandled("code")
 	response, err := oauth2.NewAuthorizeResponse(ctx, ar, mySessionData)
 
 	// Catch any errors, e.g.:
