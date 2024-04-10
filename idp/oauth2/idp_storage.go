@@ -20,7 +20,7 @@ type IdpStorage struct {
 	IDSessions         sync.Map
 	AuthorizationCodes sync.Map
 	AccessTokens       []models.AccessToken
-	RefreshTokens      sync.Map
+	RefreshTokens      []models.RefreshToken
 }
 
 func NewIdpStorage() *IdpStorage {
@@ -74,10 +74,8 @@ func (s *IdpStorage) SetClientAssertionJWT(_ context.Context, jti string, exp ti
 func (s *IdpStorage) CreateAccessTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
 	db := infrastructure.Connect()
 
-	at := models.FromRequester(signature, request)
+	at := models.AccessTokenOf(signature, request)
 	result := db.Create(&at)
-
-	log.Printf("CreateAccessTokenSession: %+v", at)
 
 	if result.Error != nil {
 		log.Printf("Error occurred in CreateAccessTokenSession: %+v", result.Error)
@@ -143,21 +141,48 @@ func (s *IdpStorage) InvalidateAuthorizeCodeSession(ctx context.Context, code st
 }
 
 func (s *IdpStorage) CreateRefreshTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
-	s.RefreshTokens.Store(signature, request)
+	db := infrastructure.Connect()
+
+	rt := models.RefreshTokenOf(signature, request)
+	result := db.Create(&rt)
+
+	if result.Error != nil {
+		log.Printf("Error occurred in CreateRefreshTokenSession: %+v", result.Error)
+		return result.Error
+	}
+
 	return nil
 }
 
 func (s *IdpStorage) GetRefreshTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
-	at, ok := s.RefreshTokens.Load(signature)
-	if ok {
-		return at.(fosite.Requester), nil
+	db := infrastructure.Connect()
+
+	var rt models.RefreshToken
+	result := db.Where("signature=?", signature).First(&rt)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			log.Printf("No record found for signature: %s", signature)
+			return nil, fosite.ErrNotFound
+		}
+		log.Printf("Error occurred in GetRefreshTokenSession: %+v", result.Error)
+		return nil, result.Error
 	}
 
-	return nil, fosite.ErrNotFound
+	log.Printf("GetRefreshTokenSession: %+v", rt)
+
+	return rt.ToRequester(), nil
 }
 
 func (s *IdpStorage) DeleteRefreshTokenSession(ctx context.Context, signature string) (err error) {
-	s.RefreshTokens.Delete(signature)
+	db := infrastructure.Connect()
+
+	result := db.Where("signature=?", signature).Delete(&models.RefreshToken{})
+	if result.Error != nil {
+		log.Printf("Error occurred in DeleteRefreshTokenSession: %+v", result.Error)
+		return result.Error
+	}
+
 	return nil
 }
 

@@ -75,13 +75,10 @@ func (a *AccessToken) GrantScope(scope string) {
 }
 
 func (a *AccessToken) GrantAudience(audience string) {
-	// a.grantedAudience = append(a.grantedAudience, audience)
+	a.grantedAudience = a.grantedAudience + " " + audience
 }
 
 func (a *AccessToken) GetSession() fosite.Session {
-	log.Printf("AccessToken: %+v", a)
-	log.Printf("SessionData: %+v", a.SessionData)
-
 	var session fosite.DefaultSession
 
 	err := json.Unmarshal([]byte(a.SessionData), &session)
@@ -118,7 +115,7 @@ func (a *AccessToken) Sanitize(allowedParameters []string) fosite.Requester {
 	return nil
 }
 
-func FromRequester(signature string, requester fosite.Requester) *AccessToken {
+func AccessTokenOf(signature string, requester fosite.Requester) *AccessToken {
 	jsonData, err := json.Marshal(requester.GetSession())
 	if err != nil {
 		log.Printf("Error occurred in FromRequester: %+v", err)

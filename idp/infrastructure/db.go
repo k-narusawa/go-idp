@@ -16,6 +16,7 @@ func DbInit() {
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Client{})
 	db.AutoMigrate(&models.AccessToken{})
+	db.AutoMigrate(&models.RefreshToken{})
 }
 
 func Connect() *gorm.DB {
