@@ -74,3 +74,18 @@ func CastToClient(mc Client) fosite.Client {
 		Public:         mc.Public,
 	}
 }
+
+func ClientOf(fc fosite.Client) Client {
+	c := fc.(*Client)
+	return Client{
+		ID:             c.ID,
+		Secret:         c.Secret,
+		RotatedSecrets: c.RotatedSecrets,
+		RedirectURIs:   c.RedirectURIs,
+		ResponseTypes:  c.ResponseTypes,
+		GrantTypes:     c.GrantTypes,
+		Scopes:         c.Scopes,
+		Audience:       c.Audience,
+		Public:         c.Public,
+	}
+}
