@@ -77,6 +77,8 @@ func (s *IdpStorage) CreateAccessTokenSession(ctx context.Context, signature str
 	at := models.FromRequester(signature, request)
 	result := db.Create(&at)
 
+	log.Printf("CreateAccessTokenSession: %+v", at)
+
 	if result.Error != nil {
 		log.Printf("Error occurred in CreateAccessTokenSession: %+v", result.Error)
 		return result.Error

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+	"log"
 	"net/url"
 	"strings"
 	"time"
@@ -17,8 +19,8 @@ type AccessToken struct {
 	scope             string    `gorm:"type:varchar(255);not null"`
 	GrantedScope      string    `gorm:"type:varchar(255);not null"`
 	FormData          string    `gorm:"type:text;not null"`
-	SessionData       string    `gorm:"type:text;not null"`
-	Subject           string    `gorm:"type:varchar(255);not null"`
+	SessionData       string    `gorm:"type:varchar(255);not null"`
+	Subject           string    `gorm:"type:text;not null"`
 	Active            bool      `gorm:"type:boolean;not null"`
 	requestedAudience string    `gorm:"type:varchar(255);not null"`
 	grantedAudience   string    `gorm:"type:varchar(255);not null"`
@@ -77,11 +79,30 @@ func (a *AccessToken) GrantAudience(audience string) {
 }
 
 func (a *AccessToken) GetSession() fosite.Session {
-	return fosite.Session(nil)
+	log.Printf("AccessToken: %+v", a)
+	log.Printf("SessionData: %+v", a.SessionData)
+
+	var session fosite.DefaultSession
+
+	err := json.Unmarshal([]byte(a.SessionData), &session)
+	if err != nil {
+		log.Printf("Error occurred in GetSession: %+v", err)
+		return nil
+	}
+
+	log.Printf("session: %+v", session)
+
+	return &session
 }
 
 func (a *AccessToken) SetSession(session fosite.Session) {
-	// SetSession implementation goes here
+	jsonData, err := json.Marshal(session)
+
+	if err != nil {
+		return
+	}
+
+	a.SessionData = string(jsonData)
 }
 
 func (a *AccessToken) GetRequestForm() url.Values {
@@ -98,6 +119,12 @@ func (a *AccessToken) Sanitize(allowedParameters []string) fosite.Requester {
 }
 
 func FromRequester(signature string, requester fosite.Requester) *AccessToken {
+	jsonData, err := json.Marshal(requester.GetSession())
+	if err != nil {
+		log.Printf("Error occurred in FromRequester: %+v", err)
+		return nil
+	}
+
 	return &AccessToken{
 		Signature:         signature,
 		clientID:          requester.GetClient().GetID(),
@@ -108,6 +135,7 @@ func FromRequester(signature string, requester fosite.Requester) *AccessToken {
 		Active:            true,
 		requestedAudience: strings.Join(requester.GetRequestedAudience(), " "),
 		grantedAudience:   strings.Join(requester.GetGrantedAudience(), " "),
+		SessionData:       string(jsonData),
 	}
 }
 
@@ -122,5 +150,6 @@ func (a *AccessToken) ToRequester() fosite.Requester {
 		Active:            a.Active,
 		requestedAudience: a.requestedAudience,
 		grantedAudience:   a.grantedAudience,
+		SessionData:       a.SessionData,
 	}
 }
