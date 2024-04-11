@@ -17,11 +17,11 @@ type AccessToken struct {
 	clientID          string    `gorm:"type:varchar(255);not null"`
 	requestedAt       time.Time `gorm:"type:timestamp;not null"`
 	scope             string    `gorm:"type:varchar(255);not null"`
-	GrantedScope      string    `gorm:"type:varchar(255);not null"`
-	FormData          string    `gorm:"type:text;not null"`
-	SessionData       string    `gorm:"type:varchar(255);not null"`
+	grantedScope      string    `gorm:"type:varchar(255);not null"`
+	formData          string    `gorm:"type:text;not null"`
+	sessionData       string    `gorm:"type:varchar(255);not null"`
 	Subject           string    `gorm:"type:text;not null"`
-	Active            bool      `gorm:"type:boolean;not null"`
+	active            bool      `gorm:"type:boolean;not null"`
 	requestedAudience string    `gorm:"type:varchar(255);not null"`
 	grantedAudience   string    `gorm:"type:varchar(255);not null"`
 }
@@ -63,7 +63,7 @@ func (at *AccessToken) AppendRequestedScope(scope string) {
 }
 
 func (at *AccessToken) GetGrantedScopes() fosite.Arguments {
-	return strings.Split(at.GrantedScope, " ")
+	return strings.Split(at.grantedScope, " ")
 }
 
 func (at *AccessToken) GetGrantedAudience() fosite.Arguments {
@@ -71,7 +71,7 @@ func (at *AccessToken) GetGrantedAudience() fosite.Arguments {
 }
 
 func (at *AccessToken) GrantScope(scope string) {
-	at.GrantedScope = at.GrantedScope + " " + scope
+	at.grantedScope = at.grantedScope + " " + scope
 }
 
 func (at *AccessToken) GrantAudience(audience string) {
@@ -81,7 +81,7 @@ func (at *AccessToken) GrantAudience(audience string) {
 func (at *AccessToken) GetSession() fosite.Session {
 	var session fosite.DefaultSession
 
-	err := json.Unmarshal([]byte(at.SessionData), &session)
+	err := json.Unmarshal([]byte(at.sessionData), &session)
 	if err != nil {
 		log.Printf("Error occurred in GetSession: %+v", err)
 		return nil
@@ -99,7 +99,7 @@ func (at *AccessToken) SetSession(session fosite.Session) {
 		return
 	}
 
-	at.SessionData = string(jsonData)
+	at.sessionData = string(jsonData)
 }
 
 func (at *AccessToken) GetRequestForm() url.Values {
@@ -127,12 +127,12 @@ func AccessTokenOf(signature string, requester fosite.Requester) *AccessToken {
 		clientID:          requester.GetClient().GetID(),
 		requestedAt:       requester.GetRequestedAt(),
 		scope:             strings.Join(requester.GetRequestedScopes(), " "),
-		GrantedScope:      strings.Join(requester.GetGrantedScopes(), " "),
-		FormData:          requester.GetRequestForm().Encode(),
-		Active:            true,
+		grantedScope:      strings.Join(requester.GetGrantedScopes(), " "),
+		formData:          requester.GetRequestForm().Encode(),
+		active:            true,
 		requestedAudience: strings.Join(requester.GetRequestedAudience(), " "),
 		grantedAudience:   strings.Join(requester.GetGrantedAudience(), " "),
-		SessionData:       string(jsonData),
+		sessionData:       string(jsonData),
 	}
 }
 
@@ -142,11 +142,11 @@ func (at *AccessToken) ToRequester() fosite.Requester {
 		clientID:          at.clientID,
 		requestedAt:       at.requestedAt,
 		scope:             at.scope,
-		GrantedScope:      at.GrantedScope,
-		FormData:          at.FormData,
-		Active:            at.Active,
+		grantedScope:      at.grantedScope,
+		formData:          at.formData,
+		active:            at.active,
 		requestedAudience: at.requestedAudience,
 		grantedAudience:   at.grantedAudience,
-		SessionData:       at.SessionData,
+		sessionData:       at.sessionData,
 	}
 }

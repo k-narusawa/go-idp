@@ -19,7 +19,6 @@ func DbInit() {
 	db.AutoMigrate(&models.RefreshToken{})
 
 	db.Create(&models.User{Username: "admin", Password: "admin"})
-
 	db.Create(&models.Client{
 		ID:             "my-client",
 		Secret:         []byte(`$2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO`), // = "foobar"
