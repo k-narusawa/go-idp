@@ -87,8 +87,6 @@ func (rt *RefreshToken) GetSession() fosite.Session {
 		return nil
 	}
 
-	log.Printf("session: %+v", session)
-
 	return &session
 }
 

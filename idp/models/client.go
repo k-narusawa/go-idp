@@ -1,7 +1,6 @@
 package models
 
 import (
-	"log"
 	"strings"
 
 	"github.com/ory/fosite"
@@ -34,31 +33,23 @@ func (c *Client) GetRedirectURIs() []string {
 }
 
 func (c *Client) GetGrantTypes() fosite.Arguments {
-	log.Printf("grant_types: %+v", strings.Split(c.GrantTypes, ","))
-	// arr := strings.Split(c.GrantTypes, ",")
-	return fosite.Arguments{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
+	return strings.Split(c.GrantTypes, ",")
 }
 
 func (c *Client) GetResponseTypes() fosite.Arguments {
-	log.Printf("response_types: %+v", c.ResponseTypes)
-	// return fosite.Arguments(strings.Split(c.ResponseTypes, ","))
-	// return fosite.Arguments{"id_token", "code", "token", "id_token token", "code id_token", "code token", "code id_token token"}
-	return fosite.Arguments{"code"}
+	return fosite.Arguments(strings.Split(c.ResponseTypes, ","))
 }
 
 func (c *Client) GetScopes() fosite.Arguments {
-	log.Printf("scopes: %+v", strings.Split(c.Scopes, ","))
 	return fosite.Arguments((strings.Split(c.Scopes, ",")))
 }
 
 func (c *Client) IsPublic() bool {
-	log.Printf("public: %+v", c.Public)
 	return c.Public
 }
 
 func (c *Client) GetAudience() fosite.Arguments {
-	log.Printf("audience: %+v", strings.Split(c.Audience, ","))
-	return fosite.Arguments{}
+	return strings.Split(c.Audience, ",")
 }
 
 func CastToClient(mc Client) fosite.Client {

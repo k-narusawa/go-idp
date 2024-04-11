@@ -119,14 +119,12 @@ func (s *IdpStorage) DeleteAccessTokenSession(ctx context.Context, signature str
 }
 
 func (s *IdpStorage) CreateAuthorizeCodeSession(_ context.Context, code string, req fosite.Requester) error {
-	log.Printf("CreateAuthorizeCodeSession: %+v", code)
 	s.AuthorizationCodes.Store(code, req)
 
 	return nil
 }
 
 func (s *IdpStorage) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (request fosite.Requester, err error) {
-	log.Printf("CreateAuthorizeCodeSession: %+v", code)
 	ac, ok := s.AuthorizationCodes.Load(code)
 
 	if ok {
@@ -137,7 +135,6 @@ func (s *IdpStorage) GetAuthorizeCodeSession(ctx context.Context, code string, s
 }
 
 func (s *IdpStorage) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
-	log.Printf("CreateAuthorizeCodeSession: %+v", code)
 	return nil
 }
 

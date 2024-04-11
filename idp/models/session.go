@@ -19,7 +19,7 @@ type IDSession struct {
 	Scope             string    `gorm:"type:varchar(255);not null"`
 	GrantedScope      string    `gorm:"type:varchar(255);not null"`
 	FormData          string    `gorm:"type:text;not null"`
-	SessionData       string    `gorm:"type:varchar(255);not null"`
+	SessionData       string    `gorm:"type:text;not null"`
 	Subject           string    `gorm:"type:text;not null"`
 	Active            bool      `gorm:"type:boolean;not null"`
 	RequestedAudience string    `gorm:"type:varchar(255);not null"`
@@ -81,6 +81,7 @@ func (is *IDSession) GrantAudience(audience string) {
 func (is *IDSession) GetSession() fosite.Session {
 	var session fosite.DefaultSession
 
+	log.Printf("is.SessionData: %+v", is.SessionData)
 	err := json.Unmarshal([]byte(is.SessionData), &session)
 	if err != nil {
 		log.Printf("Error occurred in GetSession: %+v", err)
