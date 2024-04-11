@@ -14,74 +14,74 @@ import (
 type RefreshToken struct {
 	gorm.Model
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
-	clientID          string    `gorm:"type:varchar(255);not null"`
-	requestedAt       time.Time `gorm:"type:timestamp;not null"`
-	scope             string    `gorm:"type:varchar(255);not null"`
-	grantedScope      string    `gorm:"type:varchar(255);not null"`
-	formData          string    `gorm:"type:text;not null"`
-	sessionData       string    `gorm:"type:varchar(255);not null"`
+	ClientID          string    `gorm:"type:varchar(255);not null"`
+	RequestedAt       time.Time `gorm:"type:timestamp;not null"`
+	Scope             string    `gorm:"type:varchar(255);not null"`
+	GrantedScope      string    `gorm:"type:varchar(255);not null"`
+	FormData          string    `gorm:"type:text;not null"`
+	SessionData       string    `gorm:"type:varchar(255);not null"`
 	Subject           string    `gorm:"type:text;not null"`
-	active            bool      `gorm:"type:boolean;not null"`
-	requestedAudience string    `gorm:"type:varchar(255);not null"`
-	grantedAudience   string    `gorm:"type:varchar(255);not null"`
+	Active            bool      `gorm:"type:boolean;not null"`
+	RequestedAudience string    `gorm:"type:varchar(255);not null"`
+	GrantedAudience   string    `gorm:"type:varchar(255);not null"`
 }
 
 func (rt *RefreshToken) SetID(id string) {
-	rt.clientID = id
+	rt.ClientID = id
 }
 
 func (rt *RefreshToken) GetID() string {
-	return rt.clientID
+	return rt.ClientID
 }
 
 func (rt *RefreshToken) GetRequestedAt() time.Time {
-	return rt.requestedAt
+	return rt.RequestedAt
 }
 
 func (rt *RefreshToken) GetClient() fosite.Client {
-	return fosite.Client(&Client{ID: rt.clientID})
+	return fosite.Client(&Client{ID: rt.ClientID})
 }
 
 func (rt *RefreshToken) GetRequestedScopes() fosite.Arguments {
-	return strings.Split(rt.scope, " ")
+	return strings.Split(rt.Scope, " ")
 }
 
 func (rt *RefreshToken) GetRequestedAudience() fosite.Arguments {
-	return strings.Split(rt.requestedAudience, " ")
+	return strings.Split(rt.RequestedAudience, " ")
 }
 
 func (rt *RefreshToken) SetRequestedScopes(scopes fosite.Arguments) {
-	rt.scope = strings.Join(scopes, " ")
+	rt.Scope = strings.Join(scopes, " ")
 }
 
 func (rt *RefreshToken) SetRequestedAudience(audience fosite.Arguments) {
-	rt.requestedAudience = strings.Join(audience, " ")
+	rt.RequestedAudience = strings.Join(audience, " ")
 }
 
 func (rt *RefreshToken) AppendRequestedScope(scope string) {
-	rt.scope = rt.scope + " " + scope
+	rt.Scope = rt.Scope + " " + scope
 }
 
 func (rt *RefreshToken) GetGrantedScopes() fosite.Arguments {
-	return strings.Split(rt.grantedScope, " ")
+	return strings.Split(rt.GrantedScope, " ")
 }
 
 func (rt *RefreshToken) GetGrantedAudience() fosite.Arguments {
-	return strings.Split(rt.grantedAudience, " ")
+	return strings.Split(rt.GrantedAudience, " ")
 }
 
 func (rt *RefreshToken) GrantScope(scope string) {
-	rt.grantedScope = rt.grantedScope + " " + scope
+	rt.GrantedScope = rt.GrantedScope + " " + scope
 }
 
 func (rt *RefreshToken) GrantAudience(audience string) {
-	rt.grantedAudience = rt.grantedAudience + " " + audience
+	rt.GrantedAudience = rt.GrantedAudience + " " + audience
 }
 
 func (rt *RefreshToken) GetSession() fosite.Session {
 	var session fosite.DefaultSession
 
-	err := json.Unmarshal([]byte(rt.sessionData), &session)
+	err := json.Unmarshal([]byte(rt.SessionData), &session)
 	if err != nil {
 		log.Printf("Error occurred in GetSession: %+v", err)
 		return nil
@@ -99,7 +99,7 @@ func (rt *RefreshToken) SetSession(session fosite.Session) {
 		return
 	}
 
-	rt.sessionData = string(jsonData)
+	rt.SessionData = string(jsonData)
 }
 
 func (rt *RefreshToken) GetRequestForm() url.Values {
@@ -124,29 +124,29 @@ func RefreshTokenOf(signature string, requester fosite.Requester) *RefreshToken 
 
 	return &RefreshToken{
 		Signature:         signature,
-		clientID:          requester.GetClient().GetID(),
-		requestedAt:       requester.GetRequestedAt(),
-		scope:             strings.Join(requester.GetRequestedScopes(), " "),
-		grantedScope:      strings.Join(requester.GetGrantedScopes(), " "),
-		formData:          requester.GetRequestForm().Encode(),
-		active:            true,
-		requestedAudience: strings.Join(requester.GetRequestedAudience(), " "),
-		grantedAudience:   strings.Join(requester.GetGrantedAudience(), " "),
-		sessionData:       string(jsonData),
+		ClientID:          requester.GetClient().GetID(),
+		RequestedAt:       requester.GetRequestedAt(),
+		Scope:             strings.Join(requester.GetRequestedScopes(), " "),
+		GrantedScope:      strings.Join(requester.GetGrantedScopes(), " "),
+		FormData:          requester.GetRequestForm().Encode(),
+		Active:            true,
+		RequestedAudience: strings.Join(requester.GetRequestedAudience(), " "),
+		GrantedAudience:   strings.Join(requester.GetGrantedAudience(), " "),
+		SessionData:       string(jsonData),
 	}
 }
 
 func (rt *RefreshToken) ToRequester() fosite.Requester {
 	return &RefreshToken{
 		Signature:         rt.Signature,
-		clientID:          rt.clientID,
-		requestedAt:       rt.requestedAt,
-		scope:             rt.scope,
-		grantedScope:      rt.grantedScope,
-		formData:          rt.formData,
-		active:            rt.active,
-		requestedAudience: rt.requestedAudience,
-		grantedAudience:   rt.grantedAudience,
-		sessionData:       rt.sessionData,
+		ClientID:          rt.ClientID,
+		RequestedAt:       rt.RequestedAt,
+		Scope:             rt.Scope,
+		GrantedScope:      rt.GrantedScope,
+		FormData:          rt.FormData,
+		Active:            rt.Active,
+		RequestedAudience: rt.RequestedAudience,
+		GrantedAudience:   rt.GrantedAudience,
+		SessionData:       rt.SessionData,
 	}
 }

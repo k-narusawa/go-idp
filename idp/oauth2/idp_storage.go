@@ -72,6 +72,8 @@ func (s *IdpStorage) CreateAccessTokenSession(ctx context.Context, signature str
 	db := infrastructure.Connect()
 
 	at := models.AccessTokenOf(signature, request)
+	log.Printf("CreateAccessTokenSession: %+v", at)
+
 	result := db.Create(&at)
 
 	if result.Error != nil {
@@ -87,6 +89,8 @@ func (s *IdpStorage) GetAccessTokenSession(ctx context.Context, signature string
 
 	var at models.AccessToken
 	result := db.Where("signature=?", signature).First(&at)
+
+	log.Printf("GetAccessTokenSession: %+v", at)
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -207,3 +211,49 @@ func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode st
 func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode string) error {
 	return nil
 }
+
+// func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) error {
+// 	db := infrastructure.Connect()
+
+// 	is := models.IDSessionOf(authorizeCode, requester)
+// 	result := db.Create(&is)
+
+// 	if result.Error != nil {
+// 		log.Printf("Error occurred in CreateOpenIDConnectSession: %+v", result.Error)
+// 		return result.Error
+// 	}
+
+// 	return nil
+// }
+
+// func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
+// 	db := infrastructure.Connect()
+
+// 	var is models.IDSession
+// 	result := db.Where("signature=?", authorizeCode).First(&is)
+
+// 	if result.Error != nil {
+// 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+// 			log.Printf("No record found for signature: %s", authorizeCode)
+// 			return nil, fosite.ErrNotFound
+// 		}
+// 		log.Printf("Error occurred in GetOpenIDConnectSession: %+v", result.Error)
+// 		return nil, result.Error
+// 	}
+
+// 	log.Printf("GetOpenIDConnectSession: %+v", is)
+
+// 	return is.ToRequester(), nil
+// }
+
+// func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode string) error {
+// 	db := infrastructure.Connect()
+
+// 	result := db.Where("signature=?", authorizeCode).Delete(&models.IDSession{})
+// 	if result.Error != nil {
+// 		log.Printf("Error occurred in DeleteOpenIDConnectSession: %+v", result.Error)
+// 		return result.Error
+// 	}
+
+// 	return nil
+// }
