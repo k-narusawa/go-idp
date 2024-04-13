@@ -82,7 +82,6 @@ func (at *AccessToken) GetSession() fosite.Session {
 	var session fosite.DefaultSession
 
 	if []byte(at.SessionData) == nil || len([]byte(at.SessionData)) == 0 {
-		log.Printf("sessionData is empty")
 		return fosite.NewAuthorizeRequest().Session
 	}
 

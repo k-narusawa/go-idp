@@ -1,21 +1,45 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"idp/client"
 	"idp/infrastructure"
 	"idp/oauth2"
 	"io"
+	"os"
+	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
+	}
+
+	profile, ok := os.LookupEnv("PROFILE")
+	if !ok {
+		fmt.Println("HOGE is not set")
+	}
+
 	e := echo.New()
 	infrastructure.DbInit()
-
-	e.Use(middleware.Logger())
+	if profile == "local" {
+		skipperFunc := func(c echo.Context) bool {
+			path := c.Request().URL.Path
+			return strings.HasSuffix(path, ".css") || strings.HasSuffix(path, ".js") || strings.HasSuffix(path, ".png") || strings.HasSuffix(path, ".jpg")
+		}
+		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+			Format:  "method=${method}, uri=${uri}, status=${status}\n",
+			Skipper: skipperFunc,
+		}))
+	} else {
+		e.Use(middleware.Logger())
+	}
 	e.Use(middleware.Recover())
 
 	e.Renderer = &TemplateRenderer{

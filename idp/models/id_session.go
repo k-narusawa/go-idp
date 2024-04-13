@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ory/fosite"
+	"github.com/ory/fosite/handler/openid"
 	"gorm.io/gorm"
 )
 
@@ -79,16 +80,13 @@ func (is *IDSession) GrantAudience(audience string) {
 }
 
 func (is *IDSession) GetSession() fosite.Session {
-	var session fosite.DefaultSession
+	var session openid.DefaultSession
 
-	log.Printf("is.SessionData: %+v", is.SessionData)
 	err := json.Unmarshal([]byte(is.SessionData), &session)
 	if err != nil {
 		log.Printf("Error occurred in GetSession: %+v", err)
 		return nil
 	}
-
-	log.Printf("session: %+v", session)
 
 	return &session
 }
