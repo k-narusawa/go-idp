@@ -2,6 +2,7 @@ package oauth2
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
@@ -21,11 +22,9 @@ func AuthorizationEndpoint(c echo.Context) error {
 		return err
 	}
 
-	// Normally, this would be the place where you would check if the user is logged in and gives his consent.
-	// We're simplifying things and just checking if the request includes a valid username and password
 	req.ParseForm()
 	if req.PostForm.Get("username") != "peter" {
-		return c.File("views/login.html")
+		return c.Render(http.StatusOK, "login.html", nil)
 	}
 
 	// let's see what scopes the user gave consent to

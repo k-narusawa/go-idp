@@ -41,7 +41,6 @@ func main() {
 		e.Use(middleware.Logger())
 	}
 	e.Use(middleware.Recover())
-
 	e.Renderer = &TemplateRenderer{
 		templates: template.Must(template.ParseGlob("views/*.html")),
 	}
