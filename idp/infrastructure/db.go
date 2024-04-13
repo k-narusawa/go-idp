@@ -15,6 +15,7 @@ func DbInit() {
 
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Client{})
+	db.AutoMigrate(&models.IDSession{})
 	db.AutoMigrate(&models.AuthorizationCode{})
 	db.AutoMigrate(&models.AccessToken{})
 	db.AutoMigrate(&models.RefreshToken{})
@@ -26,8 +27,8 @@ func DbInit() {
 		RotatedSecrets: `$2y$10$X51gLxUQJ.hGw1epgHTE5u0bt64xM0COU7K9iAp.OFg8p2pUd.1zC `,
 		RedirectURIs:   "http://localhost:3846/callback",
 		ResponseTypes:  "id_token,code,token,id_token token,code id_token,code token,code id_token token",
-		GrantTypes:     "implicit,refresh_token,authorization_code,password,client_credentials",
-		Scopes:         "fosite,openid,offline",
+		GrantTypes:     "refresh_token,authorization_code,client_credentials",
+		Scopes:         "openid,offline",
 	})
 }
 

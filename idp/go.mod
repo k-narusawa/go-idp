@@ -2,12 +2,10 @@ module idp
 
 go 1.20
 
-require github.com/inabajunmr/fosite-oauth-server-sample v0.0.0-20211211145954-1fb4e27950d8
-
 require (
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
-	github.com/dgraph-io/ristretto v0.0.3 // indirect
+	github.com/dgraph-io‘/ristretto v0.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/uuid v1.1.2 // indirect
