@@ -16,6 +16,7 @@ type AuthorizationCode struct {
 	gorm.Model
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
 	ClientID          string    `gorm:"type:varchar(255);not null"`
+	Client            Client    `gorm:"foreignKey:ClientID;"`
 	RequestedAt       time.Time `gorm:"type:timestamp;not null"`
 	Scope             string    `gorm:"type:varchar(255);not null"`
 	GrantedScope      string    `gorm:"type:varchar(255);not null"`
@@ -35,12 +36,16 @@ func (ac *AuthorizationCode) GetID() string {
 	return ac.ClientID
 }
 
-func (ac *AuthorizationCode) GetRequestedAt() time.Time {
-	return ac.RequestedAt
+func (ac *AuthorizationCode) GetClient() fosite.Client {
+	return &ac.Client
 }
 
-func (ac *AuthorizationCode) GetClient() fosite.Client {
-	return fosite.Client(&Client{ID: ac.ClientID})
+func (ac *AuthorizationCode) SetClient(c Client) {
+	ac.Client = c
+}
+
+func (ac *AuthorizationCode) GetRequestedAt() (requestedAt time.Time) {
+	return requestedAt
 }
 
 func (ac *AuthorizationCode) GetRequestedScopes() fosite.Arguments {
@@ -139,6 +144,7 @@ func (ac *AuthorizationCode) ToRequester() fosite.Requester {
 	return &AuthorizationCode{
 		Signature:         ac.Signature,
 		ClientID:          ac.ClientID,
+		Client:            ac.Client,
 		RequestedAt:       ac.RequestedAt,
 		Scope:             ac.Scope,
 		GrantedScope:      ac.GrantedScope,

@@ -15,6 +15,7 @@ type RefreshToken struct {
 	gorm.Model
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
 	ClientID          string    `gorm:"type:varchar(255);not null"`
+	Client            Client    `gorm:"foreignKey:ClientID"`
 	RequestedAt       time.Time `gorm:"type:timestamp;not null"`
 	Scope             string    `gorm:"type:varchar(255);not null"`
 	GrantedScope      string    `gorm:"type:varchar(255);not null"`
@@ -39,7 +40,7 @@ func (rt *RefreshToken) GetRequestedAt() time.Time {
 }
 
 func (rt *RefreshToken) GetClient() fosite.Client {
-	return fosite.Client(&Client{ID: rt.ClientID})
+	return &rt.Client
 }
 
 func (rt *RefreshToken) GetRequestedScopes() fosite.Arguments {
@@ -138,6 +139,7 @@ func (rt *RefreshToken) ToRequester() fosite.Requester {
 	return &RefreshToken{
 		Signature:         rt.Signature,
 		ClientID:          rt.ClientID,
+		Client:            rt.Client,
 		RequestedAt:       rt.RequestedAt,
 		Scope:             rt.Scope,
 		GrantedScope:      rt.GrantedScope,

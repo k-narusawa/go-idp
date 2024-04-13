@@ -129,15 +129,14 @@ func (s *IdpStorage) GetAuthorizeCodeSession(ctx context.Context, code string, s
 	db := infrastructure.Connect()
 
 	var ac models.AuthorizationCode
-	result := db.Where("signature=?", code).First(&ac)
+	ar := db.
+		Preload("Client").
+		Where("signature=?", code).
+		Find(&ac)
 
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			log.Printf("No record found for signature: %s", code)
-			return nil, fosite.ErrNotFound
-		}
-		log.Printf("Error occurred in GetAuthorizeCodeSession: %+v", result.Error)
-		return nil, result.Error
+	if ar.Error != nil {
+		log.Printf("Error occurred in GetAuthorizeCodeSession: %+v", ar.Error)
+		return nil, ar.Error
 	}
 
 	return ac.ToRequester(), nil

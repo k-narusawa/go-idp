@@ -9,15 +9,15 @@ import (
 
 type Client struct {
 	gorm.Model
-	ID             string `gorm:"type:varchar(255);not null;unique" json:"id"`
-	Secret         []byte `gorm:"type:blob" json:"client_secret,omitempty"`
-	RotatedSecrets string `gorm:"type:text" json:"rotated_secrets,omitempty"` // JSON-encoded [][]byte
-	RedirectURIs   string `gorm:"type:text" json:"redirect_uris"`             // JSON-encoded []string
-	GrantTypes     string `gorm:"type:text" json:"grant_types"`               // JSON-encoded []string
-	ResponseTypes  string `gorm:"type:text" json:"response_types"`            // JSON-encoded []string
-	Scopes         string `gorm:"type:text" json:"scopes"`                    // JSON-encoded []string
-	Audience       string `gorm:"type:text" json:"audience"`                  // JSON-encoded []string
-	Public         bool   `gorm:"type:boolean" json:"public"`
+	ID             string `gorm:"type:varchar(255);not null;unique" `
+	Secret         []byte `gorm:"type:blob"`
+	RotatedSecrets string `gorm:"type:text"`
+	RedirectURIs   string `gorm:"type:text"`
+	GrantTypes     string `gorm:"type:text"`
+	ResponseTypes  string `gorm:"type:text"`
+	Scopes         string `gorm:"type:text"`
+	Audience       string `gorm:"type:text"`
+	Public         bool   `gorm:"type:boolean"`
 }
 
 func (c *Client) GetID() string {

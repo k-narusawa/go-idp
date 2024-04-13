@@ -15,6 +15,7 @@ type AccessToken struct {
 	gorm.Model
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
 	ClientID          string    `gorm:"type:varchar(255);not null"`
+	Client            Client    `gorm:"foreignKey:ClientID"`
 	RequestedAt       time.Time `gorm:"type:timestamp;not null"`
 	Scope             string    `gorm:"type:varchar(255);not null"`
 	GrantedScope      string    `gorm:"type:varchar(255);not null"`
@@ -39,7 +40,7 @@ func (at *AccessToken) GetRequestedAt() time.Time {
 }
 
 func (at *AccessToken) GetClient() fosite.Client {
-	return fosite.Client(&Client{ID: at.ClientID})
+	return &at.Client
 }
 
 func (at *AccessToken) GetRequestedScopes() fosite.Arguments {
@@ -142,6 +143,7 @@ func (at *AccessToken) ToRequester() fosite.Requester {
 	return &AccessToken{
 		Signature:         at.Signature,
 		ClientID:          at.ClientID,
+		Client:            at.Client,
 		RequestedAt:       at.RequestedAt,
 		Scope:             at.Scope,
 		GrantedScope:      at.GrantedScope,

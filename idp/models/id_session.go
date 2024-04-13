@@ -16,6 +16,7 @@ type IDSession struct {
 	gorm.Model
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
 	ClientID          string    `gorm:"type:varchar(255);not null"`
+	Client            Client    `gorm:"foreignKey:ClientID"`
 	RequestedAt       time.Time `gorm:"type:timestamp;not null"`
 	Scope             string    `gorm:"type:varchar(255);not null"`
 	GrantedScope      string    `gorm:"type:varchar(255);not null"`
@@ -40,7 +41,7 @@ func (is *IDSession) GetRequestedAt() time.Time {
 }
 
 func (is *IDSession) GetClient() fosite.Client {
-	return fosite.Client(&Client{ID: is.ClientID})
+	return &is.Client
 }
 
 func (is *IDSession) GetRequestedScopes() fosite.Arguments {
@@ -139,6 +140,7 @@ func (is *IDSession) ToRequester() fosite.Requester {
 	return &IDSession{
 		Signature:         is.Signature,
 		ClientID:          is.ClientID,
+		Client:            is.Client,
 		RequestedAt:       is.RequestedAt,
 		Scope:             is.Scope,
 		GrantedScope:      is.GrantedScope,
