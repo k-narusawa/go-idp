@@ -17,7 +17,7 @@ import (
 type IdpStorage struct {
 	Clients            []models.Client
 	Users              []models.User
-	IDSessions         sync.Map
+	IDSessions         []models.IDSession
 	AuthorizationCodes sync.Map
 	AccessTokens       []models.AccessToken
 	RefreshTokens      []models.RefreshToken
@@ -138,6 +138,32 @@ func (s *IdpStorage) InvalidateAuthorizeCodeSession(ctx context.Context, code st
 	return nil
 }
 
+// func (s *IdpStorage) CreateRefreshTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
+// 	s.RefreshTokens.Store(signature, request)
+// 	return nil
+// }
+
+// func (s *IdpStorage) GetRefreshTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
+// 	rt, ok := s.RefreshTokens.Load(signature)
+// 	if ok {
+// 		return rt.(fosite.Requester), nil
+// 	}
+
+// 	return nil, fosite.ErrNotFound
+// }
+
+// func (s *IdpStorage) DeleteRefreshTokenSession(ctx context.Context, signature string) (err error) {
+// 	db := infrastructure.Connect()
+
+// 	result := db.Where("signature=?", signature).Delete(&models.RefreshToken{})
+// 	if result.Error != nil {
+// 		log.Printf("Error occurred in DeleteRefreshTokenSession: %+v", result.Error)
+// 		return result.Error
+// 	}
+
+// 	return nil
+// }
+
 func (s *IdpStorage) CreateRefreshTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
 	db := infrastructure.Connect()
 
@@ -192,65 +218,68 @@ func (s *IdpStorage) RevokeRefreshToken(ctx context.Context, requestID string) e
 	return nil
 }
 
-func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) error {
-	s.IDSessions.Store(authorizeCode, requester)
-	return nil
-}
-
-func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
-	ac, ok := s.IDSessions.Load(authorizeCode)
-	if ok {
-		return ac.(fosite.Requester), nil
-	}
-	return nil, fosite.ErrNotFound
-}
-
-func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode string) error {
-	return nil
-}
-
 // func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) error {
-// 	db := infrastructure.Connect()
-
-// 	is := models.IDSessionOf(authorizeCode, requester)
-// 	result := db.Create(&is)
-
-// 	if result.Error != nil {
-// 		log.Printf("Error occurred in CreateOpenIDConnectSession: %+v", result.Error)
-// 		return result.Error
-// 	}
-
+// 	s.IDSessions.Store(authorizeCode, requester)
 // 	return nil
 // }
 
 // func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
-// 	db := infrastructure.Connect()
-
-// 	var is models.IDSession
-// 	result := db.Where("signature=?", authorizeCode).First(&is)
-
-// 	if result.Error != nil {
-// 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-// 			log.Printf("No record found for signature: %s", authorizeCode)
-// 			return nil, fosite.ErrNotFound
-// 		}
-// 		log.Printf("Error occurred in GetOpenIDConnectSession: %+v", result.Error)
-// 		return nil, result.Error
+// 	ac, ok := s.IDSessions.Load(authorizeCode)
+// 	if ok {
+// 		return ac.(fosite.Requester), nil
 // 	}
 
-// 	log.Printf("GetOpenIDConnectSession: %+v", is)
-
-// 	return is.ToRequester(), nil
+// 	log.Printf("GetOpenIDConnectSession: %+v", ac)
+// 	return nil, fosite.ErrNotFound
 // }
 
 // func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode string) error {
-// 	db := infrastructure.Connect()
-
-// 	result := db.Where("signature=?", authorizeCode).Delete(&models.IDSession{})
-// 	if result.Error != nil {
-// 		log.Printf("Error occurred in DeleteOpenIDConnectSession: %+v", result.Error)
-// 		return result.Error
-// 	}
-
 // 	return nil
 // }
+
+func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) error {
+	db := infrastructure.Connect()
+
+	is := models.IDSessionOf(authorizeCode, requester)
+	log.Printf("CreateOpenIDConnectSession : %+v", is)
+	result := db.Create(&is)
+
+	if result.Error != nil {
+		log.Printf("Error occurred in CreateOpenIDConnectSession: %+v", result.Error)
+		return result.Error
+	}
+
+	return nil
+}
+
+func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
+	db := infrastructure.Connect()
+
+	var is models.IDSession
+	result := db.Where("signature=?", authorizeCode).First(&is)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			log.Printf("No record found for signature: %s", authorizeCode)
+			return nil, fosite.ErrNotFound
+		}
+		log.Printf("Error occurred in GetOpenIDConnectSession: %+v", result.Error)
+		return nil, result.Error
+	}
+
+	log.Printf("GetOpenIDConnectSession: %+v", is)
+
+	return is.ToRequester(), nil
+}
+
+func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode string) error {
+	db := infrastructure.Connect()
+
+	result := db.Where("signature=?", authorizeCode).Delete(&models.IDSession{})
+	if result.Error != nil {
+		log.Printf("Error occurred in DeleteOpenIDConnectSession: %+v", result.Error)
+		return result.Error
+	}
+
+	return nil
+}
