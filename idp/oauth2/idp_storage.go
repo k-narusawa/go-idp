@@ -143,6 +143,14 @@ func (s *IdpStorage) GetAuthorizeCodeSession(ctx context.Context, code string, s
 }
 
 func (s *IdpStorage) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
+	db := infrastructure.Connect()
+
+	result := db.Where("signature=?", code).Delete(&models.AuthorizationCode{})
+	if result.Error != nil {
+		log.Printf("Error occurred in InvalidateAuthorizeCodeSession: %+v", result.Error)
+		return result.Error
+	}
+
 	return nil
 }
 
