@@ -23,7 +23,7 @@ func main() {
 
 	profile, ok := os.LookupEnv("PROFILE")
 	if !ok {
-		fmt.Println("HOGE is not set")
+		fmt.Println("env is not set")
 	}
 
 	e := echo.New()
@@ -43,7 +43,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.Renderer = &TemplateRenderer{
-		templates: template.Must(template.ParseGlob("resources/*.html")),
+		templates: template.Must(template.ParseGlob("views/*.html")),
 	}
 
 	e.GET("/oauth2/auth", oauth2.AuthorizationEndpoint)

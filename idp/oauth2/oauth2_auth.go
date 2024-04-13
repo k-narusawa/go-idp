@@ -25,7 +25,7 @@ func AuthorizationEndpoint(c echo.Context) error {
 	// We're simplifying things and just checking if the request includes a valid username and password
 	req.ParseForm()
 	if req.PostForm.Get("username") != "peter" {
-		return c.File("resources/login.html")
+		return c.File("views/login.html")
 	}
 
 	// let's see what scopes the user gave consent to

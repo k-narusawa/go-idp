@@ -16,7 +16,7 @@ func CallbackHandler(c echo.Context) error {
 	code := c.QueryParam("code")
 
 	if code == "" {
-		return c.File("resources/error.html")
+		return c.File("views/error.html")
 	}
 
 	values := url.Values{}
@@ -39,7 +39,7 @@ func CallbackHandler(c echo.Context) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return c.File("resources/error.html")
+		return c.File("views/error.html")
 	}
 
 	b, err := io.ReadAll(resp.Body)
