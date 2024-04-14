@@ -72,11 +72,11 @@ var oauth2 = compose.Compose(
 	compose.OAuth2TokenIntrospectionFactory,
 )
 
-func newSession(user string) *openid.DefaultSession {
+func newSession(userId string) *openid.DefaultSession {
 	return &openid.DefaultSession{
 		Claims: &jwt.IDTokenClaims{
 			Issuer:      "https://fosite.my-application.com",
-			Subject:     user,
+			Subject:     userId,
 			Audience:    []string{"https://my-client.my-application.com"},
 			ExpiresAt:   time.Now().Add(time.Hour * 6),
 			IssuedAt:    time.Now(),
@@ -86,5 +86,6 @@ func newSession(user string) *openid.DefaultSession {
 		Headers: &jwt.Headers{
 			Extra: make(map[string]interface{}),
 		},
+		Subject: userId,
 	}
 }

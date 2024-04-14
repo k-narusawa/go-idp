@@ -33,7 +33,6 @@ func AuthorizationEndpoint(c echo.Context) error {
 	// 	return c.Render(http.StatusOK, "login.html", nil)
 	// }
 
-	// let's see what scopes the user gave consent to
 	for _, scope := range req.PostForm["scopes"] {
 		ar.GrantScope(scope)
 	}
@@ -54,7 +53,7 @@ func AuthorizationEndpoint(c echo.Context) error {
 		return c.Render(http.StatusOK, "login.html", nil)
 	}
 
-	mySessionData := newSession(un)
+	mySessionData := newSession(user.UserID)
 
 	// When using the HMACSHA strategy you must use something that implements the HMACSessionContainer.
 	// It brings you the power of overriding the default values.
@@ -71,29 +70,15 @@ func AuthorizationEndpoint(c echo.Context) error {
 	//
 	// mySessionData.JWTClaims.ExpiresAt = time.Now().Add(time.Day)
 
-	// It's also wise to check the requested scopes, e.g.:
-	// if ar.GetRequestedScopes().Has("admin") {
-	//     http.Error(rw, "you're not allowed to do that", http.StatusForbidden)
-	//     return
-	// }
-
-	// Now we need to get a response. This is the place where the AuthorizeEndpointHandlers kick in and start processing the request.
-	// NewAuthorizeResponse is capable of running multiple response type handlers which in turn enables this library
-	// to support open id connect.
 	ar.SetResponseTypeHandled("code")
 	response, err := oauth2.NewAuthorizeResponse(ctx, ar, mySessionData)
 
-	// Catch any errors, e.g.:
-	// * unknown client
-	// * invalid redirect
-	// * ...
 	if err != nil {
 		log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
 		oauth2.WriteAuthorizeError(ctx, rw, ar, err)
 		return err
 	}
 
-	// Last but not least, send the response!
 	oauth2.WriteAuthorizeResponse(ctx, rw, ar, response)
 
 	return nil
