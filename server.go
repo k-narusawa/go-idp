@@ -56,6 +56,7 @@ func main() {
 
 	e.GET("/", client.IndexHandler)
 	e.GET("/callback", client.CallbackHandler)
+	e.GET("/userinfo", client.UserInfoHandler)
 
 	e.Logger.Fatal(e.Start(":3846"))
 }
