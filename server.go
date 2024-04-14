@@ -54,6 +54,7 @@ func main() {
 	iUsecase := usecase.NewIntrospectUsecase(oauth2)
 	adapter.NewOauth2Handler(e, aUsecase, tUsecase, iUsecase)
 
+	e.GET("/", client.IndexHandler)
 	e.GET("/callback", client.CallbackHandler)
 
 	e.Logger.Fatal(e.Start(":3846"))
