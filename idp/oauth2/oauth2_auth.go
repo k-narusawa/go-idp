@@ -1,6 +1,8 @@
 package oauth2
 
 import (
+	"idp/infrastructure"
+	"idp/models"
 	"log"
 	"net/http"
 
@@ -22,18 +24,33 @@ func AuthorizationEndpoint(c echo.Context) error {
 		return err
 	}
 
-	req.ParseForm()
-	if req.PostForm.Get("username") != "peter" {
-		return c.Render(http.StatusOK, "login.html", nil)
-	}
+	// req.ParseForm()
+	// if req.PostForm.Get("username") != "peter" {
+	// 	return c.Render(http.StatusOK, "login.html", nil)
+	// }
 
 	// let's see what scopes the user gave consent to
 	for _, scope := range req.PostForm["scopes"] {
 		ar.GrantScope(scope)
 	}
 
-	// Now that the user is authorized, we set up a session:
-	mySessionData := newSession("peter")
+	un := req.PostForm.Get("username")
+	p := req.PostForm.Get("password")
+
+	db := infrastructure.Connect()
+	var user models.User
+	res := db.Where("username=?", un).First(&user)
+	if res.Error != nil {
+		log.Printf("Error occurred in GetClient: %+v", res.Error)
+		return res.Error
+	}
+
+	if err := user.Authenticate(p); err != nil {
+		log.Printf("Error occurred in Authenticate: %+v", err)
+		return c.Render(http.StatusOK, "login.html", nil)
+	}
+
+	mySessionData := newSession(un)
 
 	// When using the HMACSHA strategy you must use something that implements the HMACSessionContainer.
 	// It brings you the power of overriding the default values.
