@@ -10,7 +10,6 @@ import (
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
 	fositeoauth2 "github.com/ory/fosite/handler/oauth2"
-	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/hmac"
 	"github.com/ory/fosite/token/jwt"
 )
@@ -49,42 +48,26 @@ var (
 	}
 )
 
-// var jwtStrategy = compose.NewOAuth2JWTStrategy(getPrivateKey, oAuth2HMACStrategy, config)
-
-var oauth2 = compose.Compose(
-	config,
-	NewIdpStorage(),
-	&compose.CommonStrategy{
-		CoreStrategy: oAuth2HMACStrategy,
-		// CoreStrategy:               jwtStrategy,
-		OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(getPrivateKey, config),
-		Signer: &jwt.DefaultSigner{
-			GetPrivateKey: getPrivateKey,
+func NewOauth2Provider() fosite.OAuth2Provider {
+	// var jwtStrategy = compose.NewOAuth2JWTStrategy(getPrivateKey, oAuth2HMACStrategy, config)
+	return compose.Compose(
+		config,
+		NewIdpStorage(),
+		&compose.CommonStrategy{
+			CoreStrategy: oAuth2HMACStrategy,
+			// CoreStrategy:               jwtStrategy,
+			OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(getPrivateKey, config),
+			Signer: &jwt.DefaultSigner{
+				GetPrivateKey: getPrivateKey,
+			},
 		},
-	},
 
-	compose.OAuth2AuthorizeExplicitFactory,
-	compose.OAuth2ClientCredentialsGrantFactory,
-	compose.OAuth2RefreshTokenGrantFactory,
+		compose.OAuth2AuthorizeExplicitFactory,
+		compose.OAuth2ClientCredentialsGrantFactory,
+		compose.OAuth2RefreshTokenGrantFactory,
 
-	compose.OpenIDConnectExplicitFactory,
+		compose.OpenIDConnectExplicitFactory,
 
-	compose.OAuth2TokenIntrospectionFactory,
-)
-
-func newSession(user string) *openid.DefaultSession {
-	return &openid.DefaultSession{
-		Claims: &jwt.IDTokenClaims{
-			Issuer:      "https://fosite.my-application.com",
-			Subject:     user,
-			Audience:    []string{"https://my-client.my-application.com"},
-			ExpiresAt:   time.Now().Add(time.Hour * 6),
-			IssuedAt:    time.Now(),
-			RequestedAt: time.Now(),
-			AuthTime:    time.Now(),
-		},
-		Headers: &jwt.Headers{
-			Extra: make(map[string]interface{}),
-		},
-	}
+		compose.OAuth2TokenIntrospectionFactory,
+	)
 }

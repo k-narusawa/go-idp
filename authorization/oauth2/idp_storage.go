@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"idp/authorization/infrastructure"
-	"idp/authorization/models"
+	"idp/authorization/adapter/gateway"
+	"idp/authorization/domain/models"
 
 	"github.com/ory/fosite"
 	"gorm.io/gorm"
@@ -28,7 +28,7 @@ func NewIdpStorage() *IdpStorage {
 }
 
 func (s *IdpStorage) CreateClient(_ context.Context, client fosite.Client) {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	c := models.ClientOf(client)
 	result := db.Create(&c)
@@ -39,7 +39,7 @@ func (s *IdpStorage) CreateClient(_ context.Context, client fosite.Client) {
 }
 
 func (s *IdpStorage) GetClient(_ context.Context, id string) (fosite.Client, error) {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	var c models.Client
 	res := db.Where("id=?", id).First(&c)
@@ -68,7 +68,7 @@ func (s *IdpStorage) SetClientAssertionJWT(_ context.Context, jti string, exp ti
 }
 
 func (s *IdpStorage) CreateAccessTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	at := models.AccessTokenOf(signature, request)
 
@@ -84,7 +84,7 @@ func (s *IdpStorage) CreateAccessTokenSession(ctx context.Context, signature str
 }
 
 func (s *IdpStorage) GetAccessTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	var at models.AccessToken
 	result := db.Where("signature=?", signature).First(&at)
@@ -103,7 +103,7 @@ func (s *IdpStorage) GetAccessTokenSession(ctx context.Context, signature string
 }
 
 func (s *IdpStorage) DeleteAccessTokenSession(ctx context.Context, signature string) (err error) {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	result := db.Where("signature=?", signature).Delete(&models.AccessToken{})
 	if result.Error != nil {
@@ -116,7 +116,7 @@ func (s *IdpStorage) DeleteAccessTokenSession(ctx context.Context, signature str
 }
 
 func (s *IdpStorage) CreateAuthorizeCodeSession(_ context.Context, code string, req fosite.Requester) error {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	ac := models.AuthorizationCodeOf(code, req)
 
@@ -131,7 +131,7 @@ func (s *IdpStorage) CreateAuthorizeCodeSession(_ context.Context, code string, 
 }
 
 func (s *IdpStorage) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (request fosite.Requester, err error) {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	var ac models.AuthorizationCode
 	ar := db.
@@ -149,7 +149,7 @@ func (s *IdpStorage) GetAuthorizeCodeSession(ctx context.Context, code string, s
 }
 
 func (s *IdpStorage) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	result := db.Where("signature=?", code).Delete(&models.AuthorizationCode{})
 	if result.Error != nil {
@@ -162,7 +162,7 @@ func (s *IdpStorage) InvalidateAuthorizeCodeSession(ctx context.Context, code st
 }
 
 func (s *IdpStorage) CreateRefreshTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	rt := models.RefreshTokenOf(signature, request)
 	result := db.Create(&rt)
@@ -177,7 +177,7 @@ func (s *IdpStorage) CreateRefreshTokenSession(ctx context.Context, signature st
 }
 
 func (s *IdpStorage) GetRefreshTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	var rt models.RefreshToken
 	result := db.Where("signature=?", signature).First(&rt)
@@ -196,7 +196,7 @@ func (s *IdpStorage) GetRefreshTokenSession(ctx context.Context, signature strin
 }
 
 func (s *IdpStorage) DeleteRefreshTokenSession(ctx context.Context, signature string) (err error) {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	result := db.Where("signature=?", signature).Delete(&models.RefreshToken{})
 	if result.Error != nil {
@@ -209,7 +209,7 @@ func (s *IdpStorage) DeleteRefreshTokenSession(ctx context.Context, signature st
 }
 
 func (s *IdpStorage) RevokeAccessToken(ctx context.Context, requestID string) error {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	result := db.Where("signature=?", requestID).Delete(&models.AccessToken{})
 	if result.Error != nil {
@@ -222,7 +222,7 @@ func (s *IdpStorage) RevokeAccessToken(ctx context.Context, requestID string) er
 }
 
 func (s *IdpStorage) RevokeRefreshToken(ctx context.Context, requestID string) error {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	result := db.Where("signature=?", requestID).Delete(&models.RefreshToken{})
 	if result.Error != nil {
@@ -235,7 +235,7 @@ func (s *IdpStorage) RevokeRefreshToken(ctx context.Context, requestID string) e
 }
 
 func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) error {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	is := models.IDSessionOf(authorizeCode, requester)
 
@@ -251,7 +251,7 @@ func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode
 }
 
 func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	var is models.IDSession
 	result := db.Where("signature=?", authorizeCode).First(&is)
@@ -270,7 +270,7 @@ func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode st
 }
 
 func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode string) error {
-	db := infrastructure.Connect()
+	db := gateway.Connect()
 
 	result := db.Where("signature=?", authorizeCode).Delete(&models.IDSession{})
 	if result.Error != nil {
