@@ -24,6 +24,10 @@ func AuthorizationEndpoint(c echo.Context) error {
 		return err
 	}
 
+	if req.Method == "GET" {
+		return c.Render(http.StatusOK, "login.html", nil)
+	}
+
 	// req.ParseForm()
 	// if req.PostForm.Get("username") != "peter" {
 	// 	return c.Render(http.StatusOK, "login.html", nil)
