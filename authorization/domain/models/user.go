@@ -1,10 +1,10 @@
 package models
 
 import (
+	"idp/authorization/util"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-
-	"idp/authorization/hash"
 )
 
 type User struct {
@@ -20,7 +20,7 @@ func NewUser(username, password string) *User {
 		panic(err)
 	}
 
-	hashedPassword, err := hash.HashPassword(password)
+	hashedPassword, err := util.HashPassword(password)
 	if err != nil {
 		panic(err)
 	}
@@ -33,5 +33,5 @@ func NewUser(username, password string) *User {
 }
 
 func (u *User) Authenticate(password string) error {
-	return hash.Compare([]byte(password), u.Password)
+	return util.Compare([]byte(password), u.Password)
 }
