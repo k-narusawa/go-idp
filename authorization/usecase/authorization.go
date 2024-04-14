@@ -52,12 +52,18 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 	res := db.Where("username=?", un).First(&user)
 	if res.Error != nil {
 		log.Printf("Error occurred in GetClient: %+v", res.Error)
-		return res.Error
+		msg := map[string]interface{}{
+			"error": "Invalid username or password",
+		}
+		return c.Render(http.StatusOK, "login.html", msg)
 	}
 
 	if err := user.Authenticate(p); err != nil {
 		log.Printf("Error occurred in Authenticate: %+v", err)
-		return c.Render(http.StatusOK, "login.html", nil)
+		msg := map[string]interface{}{
+			"error": "Invalid username or password",
+		}
+		return c.Render(http.StatusOK, "login.html", msg)
 	}
 
 	mySessionData := models.NewSession(user.UserID)

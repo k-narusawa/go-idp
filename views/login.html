@@ -5,6 +5,7 @@
 </head>
 <body>
   <h1>Login page</h1>
+  <p>{{.error}}</p>
   <form method="post">
     <input type="hidden" name="scopes" value="openid" />
     <input type="hidden" name="scopes" value="offline" />
@@ -12,5 +13,9 @@
     <input type="password" name="password" value="password" />
     <input type="submit" value="Login">
   </form>
+  <script>
+    window.msg = "{{.}}";
+    console.log(window.msg); // ブラウザのコンソールで確認可能
+  </script>
 </body>
 </html>
