@@ -15,10 +15,10 @@ func IntrospectionEndpoint(c echo.Context) error {
 	ir, err := oauth2.NewIntrospectionRequest(ctx, req, mySessionData)
 	if err != nil {
 		log.Printf("Error occurred in NewIntrospectionRequest: %+v", err)
-		oauth2.WriteIntrospectionError(rw, err)
+		oauth2.WriteIntrospectionError(ctx, rw, err)
 		return err
 	}
 
-	oauth2.WriteIntrospectionResponse(rw, ir)
+	oauth2.WriteIntrospectionResponse(ctx, rw, ir)
 	return nil
 }

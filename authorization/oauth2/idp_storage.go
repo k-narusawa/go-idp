@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"idp/infrastructure"
-	"idp/models"
+	"idp/authorization/infrastructure"
+	"idp/authorization/models"
 
 	"github.com/ory/fosite"
 	"gorm.io/gorm"
@@ -32,17 +32,16 @@ func (s *IdpStorage) CreateClient(_ context.Context, client fosite.Client) {
 
 	c := models.ClientOf(client)
 	result := db.Create(&c)
-
 	if result.Error != nil {
 		log.Printf("Error occurred in CreateClient: %+v", result.Error)
 	}
+	log.Printf("CreateClient ClientID: %+v", c.ID)
 }
 
 func (s *IdpStorage) GetClient(_ context.Context, id string) (fosite.Client, error) {
 	db := infrastructure.Connect()
 
 	var c models.Client
-
 	res := db.Where("id=?", id).First(&c)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
@@ -52,6 +51,8 @@ func (s *IdpStorage) GetClient(_ context.Context, id string) (fosite.Client, err
 		log.Printf("Error occurred in GetClient: %+v", res.Error)
 		return nil, res.Error
 	}
+
+	log.Printf("GetClient ClientID: %+v", c.ID)
 
 	return models.CastToClient(c), nil
 }
@@ -78,6 +79,7 @@ func (s *IdpStorage) CreateAccessTokenSession(ctx context.Context, signature str
 		return result.Error
 	}
 
+	log.Printf("CreateAccessTokenSession Signature: %+v", signature)
 	return nil
 }
 
@@ -96,6 +98,7 @@ func (s *IdpStorage) GetAccessTokenSession(ctx context.Context, signature string
 		return nil, result.Error
 	}
 
+	log.Printf("GetAccessTokenSession Signature: %+v", signature)
 	return at.ToRequester(), nil
 }
 
@@ -108,6 +111,7 @@ func (s *IdpStorage) DeleteAccessTokenSession(ctx context.Context, signature str
 		return result.Error
 	}
 
+	log.Printf("DeleteAccessTokenSession Signature: %+v", signature)
 	return nil
 }
 
@@ -122,6 +126,7 @@ func (s *IdpStorage) CreateAuthorizeCodeSession(_ context.Context, code string, 
 		return result.Error
 	}
 
+	log.Printf("CreateAuthorizeCodeSession Code: %+v", code)
 	return nil
 }
 
@@ -139,10 +144,20 @@ func (s *IdpStorage) GetAuthorizeCodeSession(ctx context.Context, code string, s
 		return nil, ar.Error
 	}
 
+	log.Printf("GetAuthorizeCodeSession Code: %+v", code)
 	return ac.ToRequester(), nil
 }
 
 func (s *IdpStorage) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
+	db := infrastructure.Connect()
+
+	result := db.Where("signature=?", code).Delete(&models.AuthorizationCode{})
+	if result.Error != nil {
+		log.Printf("Error occurred in InvalidateAuthorizeCodeSession: %+v", result.Error)
+		return result.Error
+	}
+
+	log.Printf("InvalidateAuthorizeCodeSession Code: %+v", code)
 	return nil
 }
 
@@ -157,6 +172,7 @@ func (s *IdpStorage) CreateRefreshTokenSession(ctx context.Context, signature st
 		return result.Error
 	}
 
+	log.Printf("CreateRefreshTokenSession Signature: %+v", signature)
 	return nil
 }
 
@@ -175,6 +191,7 @@ func (s *IdpStorage) GetRefreshTokenSession(ctx context.Context, signature strin
 		return nil, result.Error
 	}
 
+	log.Printf("GetRefreshTokenSession Signature: %+v", signature)
 	return rt.ToRequester(), nil
 }
 
@@ -187,14 +204,33 @@ func (s *IdpStorage) DeleteRefreshTokenSession(ctx context.Context, signature st
 		return result.Error
 	}
 
+	log.Printf("DeleteRefreshTokenSession Signature: %+v", signature)
 	return nil
 }
 
 func (s *IdpStorage) RevokeAccessToken(ctx context.Context, requestID string) error {
+	db := infrastructure.Connect()
+
+	result := db.Where("signature=?", requestID).Delete(&models.AccessToken{})
+	if result.Error != nil {
+		log.Printf("Error occurred in RevokeAccessToken: %+v", result.Error)
+		return result.Error
+	}
+
+	log.Printf("RevokeAccessToken RequestID: %+v", requestID)
 	return nil
 }
 
 func (s *IdpStorage) RevokeRefreshToken(ctx context.Context, requestID string) error {
+	db := infrastructure.Connect()
+
+	result := db.Where("signature=?", requestID).Delete(&models.RefreshToken{})
+	if result.Error != nil {
+		log.Printf("Error occurred in RevokeRefreshToken: %+v", result.Error)
+		return result.Error
+	}
+
+	log.Printf("RevokeRefreshToken RequestID: %+v", requestID)
 	return nil
 }
 
@@ -210,6 +246,7 @@ func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode
 		return result.Error
 	}
 
+	log.Printf("CreateOpenIDConnectSession Signature: %+v", authorizeCode)
 	return nil
 }
 
@@ -228,6 +265,7 @@ func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode st
 		return nil, result.Error
 	}
 
+	log.Printf("GetOpenIDConnectSession Signature: %+v", authorizeCode)
 	return is.ToRequester(), nil
 }
 
@@ -240,5 +278,11 @@ func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode
 		return result.Error
 	}
 
+	log.Printf("DeleteOpenIDConnectSession Signature: %+v", authorizeCode)
 	return nil
+}
+
+func (s *IdpStorage) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID string, signature string) error {
+	// no configuration option is available; grace period is not available with memory store
+	return s.RevokeRefreshToken(ctx, requestID)
 }

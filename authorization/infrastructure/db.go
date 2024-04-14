@@ -1,7 +1,7 @@
 package infrastructure
 
 import (
-	"idp/models"
+	"idp/authorization/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -20,7 +20,8 @@ func DbInit() {
 	db.AutoMigrate(&models.AccessToken{})
 	db.AutoMigrate(&models.RefreshToken{})
 
-	db.Create(&models.User{Username: "admin", Password: "admin"})
+	testUser := models.NewUser("test@example.com", "password")
+	db.Create(&testUser)
 	db.Create(&models.Client{
 		ID:             "my-client",
 		Secret:         []byte(`$2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO`), // = "foobar"

@@ -1,7 +1,10 @@
 package oauth2
 
 import (
+	"idp/authorization/infrastructure"
+	"idp/authorization/models"
 	"log"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
@@ -17,24 +20,41 @@ func AuthorizationEndpoint(c echo.Context) error {
 	ar, err := oauth2.NewAuthorizeRequest(ctx, req)
 	if err != nil {
 		log.Printf("Error occurred in NewAuthorizeRequest: %+v", err)
-		oauth2.WriteAuthorizeError(rw, ar, err)
+		oauth2.WriteAuthorizeError(ctx, rw, ar, err)
 		return err
 	}
 
-	// Normally, this would be the place where you would check if the user is logged in and gives his consent.
-	// We're simplifying things and just checking if the request includes a valid username and password
-	req.ParseForm()
-	if req.PostForm.Get("username") != "peter" {
-		return c.File("views/login.html")
+	if req.Method == "GET" {
+		return c.Render(http.StatusOK, "login.html", nil)
 	}
+
+	// req.ParseForm()
+	// if req.PostForm.Get("username") != "peter" {
+	// 	return c.Render(http.StatusOK, "login.html", nil)
+	// }
 
 	// let's see what scopes the user gave consent to
 	for _, scope := range req.PostForm["scopes"] {
 		ar.GrantScope(scope)
 	}
 
-	// Now that the user is authorized, we set up a session:
-	mySessionData := newSession("peter")
+	un := req.PostForm.Get("username")
+	p := req.PostForm.Get("password")
+
+	db := infrastructure.Connect()
+	var user models.User
+	res := db.Where("username=?", un).First(&user)
+	if res.Error != nil {
+		log.Printf("Error occurred in GetClient: %+v", res.Error)
+		return res.Error
+	}
+
+	if err := user.Authenticate(p); err != nil {
+		log.Printf("Error occurred in Authenticate: %+v", err)
+		return c.Render(http.StatusOK, "login.html", nil)
+	}
+
+	mySessionData := newSession(un)
 
 	// When using the HMACSHA strategy you must use something that implements the HMACSessionContainer.
 	// It brings you the power of overriding the default values.
@@ -69,12 +89,12 @@ func AuthorizationEndpoint(c echo.Context) error {
 	// * ...
 	if err != nil {
 		log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
-		oauth2.WriteAuthorizeError(rw, ar, err)
+		oauth2.WriteAuthorizeError(ctx, rw, ar, err)
 		return err
 	}
 
 	// Last but not least, send the response!
-	oauth2.WriteAuthorizeResponse(rw, ar, response)
+	oauth2.WriteAuthorizeResponse(ctx, rw, ar, response)
 
 	return nil
 }
