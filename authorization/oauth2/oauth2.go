@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"os"
 	"sync"
 	"time"
 
@@ -12,43 +13,61 @@ import (
 	fositeoauth2 "github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/token/hmac"
 	"github.com/ory/fosite/token/jwt"
+	"gopkg.in/yaml.v2"
 )
 
-var (
-	config = &fosite.Config{
-		IDTokenIssuer:              "http://locahost:3846",
-		SendDebugMessagesToClients: true,
-		ScopeStrategy:              fosite.ExactScopeStrategy,
-		RedirectSecureChecker:      fosite.IsRedirectURISecureStrict,
-		AllowedPromptValues:        []string{"none"},
-		TokenURL:                   "http://locahost:3846/oauth2/token",
-		AccessTokenLifespan:        time.Minute * 30,
-		AccessTokenIssuer:          "http://locahost:3846",
-		RefreshTokenScopes:         []string{"offline"},
-		RefreshTokenLifespan:       time.Hour * 24,
-		AuthorizeCodeLifespan:      time.Minute * 1,
-	}
-
-	secret = []byte("some-cool-secret-that-is-32bytes")
-
-	privateKey, _ = rsa.GenerateKey(rand.Reader, 2048)
-
-	getPrivateKey = func(context.Context) (interface{}, error) {
-		return privateKey, nil
-	}
-
-	hmacStrategy = &hmac.HMACStrategy{
-		Mutex:  sync.Mutex{},
-		Config: &hmacStrategyConfigurator{Secret: secret},
-	}
-
-	oAuth2HMACStrategy = &fositeoauth2.HMACSHAStrategy{
-		Enigma: hmacStrategy,
-		Config: config,
-	}
-)
+type Oauth2Config struct {
+	Issuer                string        `yaml:"issuer"`
+	AccessTokenLifespan   time.Duration `yaml:"access_token_lifespan"`
+	RefreshTokenLifespan  time.Duration `yaml:"refresh_token_lifespan"`
+	AuthorizeCodeLifespan time.Duration `yaml:"authorize_code_lifespan"`
+}
 
 func NewOauth2Provider() fosite.OAuth2Provider {
+	content, err := os.ReadFile("authorization/oauth2/config.yml")
+	if err != nil {
+		panic(err)
+	}
+
+	var oc Oauth2Config
+	if err = yaml.Unmarshal(content, &oc); err != nil {
+		panic(err)
+	}
+
+	var (
+		config = &fosite.Config{
+			IDTokenIssuer:              oc.Issuer,
+			SendDebugMessagesToClients: true,
+			ScopeStrategy:              fosite.ExactScopeStrategy,
+			RedirectSecureChecker:      fosite.IsRedirectURISecureStrict,
+			AllowedPromptValues:        []string{"none"},
+			TokenURL:                   "http://locahost:3846/oauth2/token",
+			AccessTokenLifespan:        time.Duration(oc.AccessTokenLifespan.Seconds()),
+			AccessTokenIssuer:          oc.Issuer,
+			RefreshTokenScopes:         []string{"offline"},
+			RefreshTokenLifespan:       time.Duration(oc.RefreshTokenLifespan.Seconds()),
+			AuthorizeCodeLifespan:      time.Duration(oc.AuthorizeCodeLifespan.Seconds()),
+		}
+
+		secret = []byte("some-cool-secret-that-is-32bytes")
+
+		privateKey, _ = rsa.GenerateKey(rand.Reader, 2048)
+
+		getPrivateKey = func(context.Context) (interface{}, error) {
+			return privateKey, nil
+		}
+
+		hmacStrategy = &hmac.HMACStrategy{
+			Mutex:  sync.Mutex{},
+			Config: &hmacStrategyConfigurator{Secret: secret},
+		}
+
+		oAuth2HMACStrategy = &fositeoauth2.HMACSHAStrategy{
+			Enigma: hmacStrategy,
+			Config: config,
+		}
+	)
+
 	// var jwtStrategy = compose.NewOAuth2JWTStrategy(getPrivateKey, oAuth2HMACStrategy, config)
 	return compose.Compose(
 		config,
