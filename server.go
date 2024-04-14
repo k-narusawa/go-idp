@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"idp/authorization/infrastructure"
+	"idp/authorization/adapter"
+	"idp/authorization/adapter/gateway"
 	"idp/authorization/oauth2"
+	"idp/authorization/usecase"
 	"idp/client"
 	"io"
 	"os"
@@ -27,7 +29,8 @@ func main() {
 	}
 
 	e := echo.New()
-	infrastructure.DbInit()
+	gateway.DbInit()
+
 	if profile == "local" {
 		skipperFunc := func(c echo.Context) bool {
 			path := c.Request().URL.Path
@@ -45,10 +48,11 @@ func main() {
 		templates: template.Must(template.ParseGlob("views/*.html")),
 	}
 
-	e.GET("/oauth2/auth", oauth2.AuthorizationEndpoint)
-	e.POST("/oauth2/auth", oauth2.AuthorizationEndpoint)
-	e.POST("/oauth2/token", oauth2.TokenEndpoint)
-	e.POST("/oauth2/introspect", oauth2.IntrospectionEndpoint)
+	oauth2 := oauth2.NewOauth2Provider()
+	aUsecase := usecase.NewAuthorization(oauth2)
+	tUsecase := usecase.NewTokenUsecase(oauth2)
+	iUsecase := usecase.NewIntrospectUsecase(oauth2)
+	adapter.NewOauth2Handler(e, aUsecase, tUsecase, iUsecase)
 
 	e.GET("/callback", client.CallbackHandler)
 
