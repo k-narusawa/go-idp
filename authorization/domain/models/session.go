@@ -10,10 +10,8 @@ import (
 func NewSession(userId string) *openid.DefaultSession {
 	return &openid.DefaultSession{
 		Claims: &jwt.IDTokenClaims{
-			Issuer:      "https://fosite.my-application.com",
+			Issuer:      "go-idp",
 			Subject:     userId,
-			Audience:    []string{"https://my-client.my-application.com"},
-			ExpiresAt:   time.Now().Add(time.Hour * 6),
 			IssuedAt:    time.Now(),
 			RequestedAt: time.Now(),
 			AuthTime:    time.Now(),
