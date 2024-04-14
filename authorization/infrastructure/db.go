@@ -1,7 +1,7 @@
 package infrastructure
 
 import (
-	"idp/models"
+	"idp/authorization/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"idp/infrastructure"
-	"idp/models"
+	"idp/authorization/infrastructure"
+	"idp/authorization/models"
 
 	"github.com/ory/fosite"
 	"gorm.io/gorm"
@@ -280,4 +280,9 @@ func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode
 
 	log.Printf("DeleteOpenIDConnectSession Signature: %+v", authorizeCode)
 	return nil
+}
+
+func (s *IdpStorage) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID string, signature string) error {
+	// no configuration option is available; grace period is not available with memory store
+	return s.RevokeRefreshToken(ctx, requestID)
 }

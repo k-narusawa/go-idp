@@ -20,7 +20,7 @@ func TokenEndpoint(c echo.Context) error {
 
 	if err != nil {
 		log.Printf("Error occurred in NewAccessRequest: %+v", err)
-		oauth2.WriteAccessError(rw, accessRequest, err)
+		oauth2.WriteAccessError(ctx, rw, accessRequest, err)
 		return nil
 	}
 
@@ -38,12 +38,12 @@ func TokenEndpoint(c echo.Context) error {
 	response, err := oauth2.NewAccessResponse(ctx, accessRequest)
 	if err != nil {
 		log.Printf("Error occurred in NewAccessResponse: %+v", err)
-		oauth2.WriteAccessError(rw, accessRequest, err)
+		oauth2.WriteAccessError(ctx, rw, accessRequest, err)
 		return nil
 	}
 
 	// All done, send the response.
-	oauth2.WriteAccessResponse(rw, accessRequest, response)
+	oauth2.WriteAccessResponse(ctx, rw, accessRequest, response)
 
 	return nil
 }

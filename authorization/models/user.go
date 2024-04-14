@@ -4,7 +4,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"idp/hash"
+	"idp/authorization/hash"
 )
 
 type User struct {

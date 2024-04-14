@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"idp/client"
-	"idp/infrastructure"
-	"idp/oauth2"
+	"idp/authorization/client"
+	"idp/authorization/infrastructure"
+	"idp/authorization/oauth2"
 	"io"
 	"os"
 	"strings"

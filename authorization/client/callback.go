@@ -2,7 +2,7 @@ package client
 
 import (
 	"encoding/json"
-	"idp/models"
+	"idp/authorization/models"
 	"io"
 	"log"
 	"net/http"

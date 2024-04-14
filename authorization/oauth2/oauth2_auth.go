@@ -1,8 +1,8 @@
 package oauth2
 
 import (
-	"idp/infrastructure"
-	"idp/models"
+	"idp/authorization/infrastructure"
+	"idp/authorization/models"
 	"log"
 	"net/http"
 
@@ -20,7 +20,7 @@ func AuthorizationEndpoint(c echo.Context) error {
 	ar, err := oauth2.NewAuthorizeRequest(ctx, req)
 	if err != nil {
 		log.Printf("Error occurred in NewAuthorizeRequest: %+v", err)
-		oauth2.WriteAuthorizeError(rw, ar, err)
+		oauth2.WriteAuthorizeError(ctx, rw, ar, err)
 		return err
 	}
 
@@ -89,12 +89,12 @@ func AuthorizationEndpoint(c echo.Context) error {
 	// * ...
 	if err != nil {
 		log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
-		oauth2.WriteAuthorizeError(rw, ar, err)
+		oauth2.WriteAuthorizeError(ctx, rw, ar, err)
 		return err
 	}
 
 	// Last but not least, send the response!
-	oauth2.WriteAuthorizeResponse(rw, ar, response)
+	oauth2.WriteAuthorizeResponse(ctx, rw, ar, response)
 
 	return nil
 }
