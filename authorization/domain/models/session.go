@@ -8,6 +8,11 @@ import (
 )
 
 func NewSession(userId string) *openid.DefaultSession {
+	header := &jwt.Headers{
+		Extra: make(map[string]interface{}),
+	}
+	header.Add("kid", "go-idp:123")
+
 	return &openid.DefaultSession{
 		Claims: &jwt.IDTokenClaims{
 			Issuer:      "go-idp",
@@ -16,9 +21,7 @@ func NewSession(userId string) *openid.DefaultSession {
 			RequestedAt: time.Now(),
 			AuthTime:    time.Now(),
 		},
-		Headers: &jwt.Headers{
-			Extra: make(map[string]interface{}),
-		},
+		Headers: header,
 		Subject: userId,
 	}
 }

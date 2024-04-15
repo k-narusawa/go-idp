@@ -18,14 +18,12 @@ func (j *JWKUsecase) Invoke(c echo.Context) error {
 	data, _ := os.ReadFile("cert/public-key.pem")
 	keyset, _ := jwk.ParseKey(data, jwk.WithPEM(true))
 
-	keyset.Set(jwk.KeyIDKey, "12345678")
-	keyset.Set(jwk.AlgorithmKey, "RS256")
-	keyset.Set(jwk.KeyUsageKey, "sig")
+	keyset.Set(jwk.KeyIDKey, "go-idp:123")
 
 	jwk := map[string]interface{}{
 		"keys": []interface{}{keyset},
 	}
 	buf, _ := json.MarshalIndent(jwk, "", "  ")
-	// []byteをJSONに変換してレスポンスとして返す
+
 	return c.JSONBlob(200, buf)
 }

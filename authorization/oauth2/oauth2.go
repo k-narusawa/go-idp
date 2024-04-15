@@ -2,7 +2,6 @@ package oauth2
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/rsa"
 	"os"
 	"sync"
@@ -23,7 +22,7 @@ type Oauth2Config struct {
 	AuthorizeCodeLifespan time.Duration `yaml:"authorize_code_lifespan"`
 }
 
-func NewOauth2Provider() fosite.OAuth2Provider {
+func NewOauth2Provider(privateKey *rsa.PrivateKey) fosite.OAuth2Provider {
 	content, err := os.ReadFile("authorization/oauth2/config.yml")
 	if err != nil {
 		panic(err)
@@ -35,6 +34,17 @@ func NewOauth2Provider() fosite.OAuth2Provider {
 	}
 
 	var (
+		secret = []byte("some-cool-secret-that-is-32bytes")
+
+		getPrivateKey = func(context.Context) (interface{}, error) {
+			return privateKey, nil
+		}
+
+		hmacStrategy = &hmac.HMACStrategy{
+			Mutex:  sync.Mutex{},
+			Config: &hmacStrategyConfigurator{Secret: secret},
+		}
+
 		config = &fosite.Config{
 			IDTokenIssuer:              oc.Issuer,
 			SendDebugMessagesToClients: true,
@@ -47,19 +57,7 @@ func NewOauth2Provider() fosite.OAuth2Provider {
 			RefreshTokenScopes:         []string{"offline"},
 			RefreshTokenLifespan:       time.Duration(oc.RefreshTokenLifespan.Seconds()),
 			AuthorizeCodeLifespan:      time.Duration(oc.AuthorizeCodeLifespan.Seconds()),
-		}
-
-		secret = []byte("some-cool-secret-that-is-32bytes")
-
-		privateKey, _ = rsa.GenerateKey(rand.Reader, 2048)
-
-		getPrivateKey = func(context.Context) (interface{}, error) {
-			return privateKey, nil
-		}
-
-		hmacStrategy = &hmac.HMACStrategy{
-			Mutex:  sync.Mutex{},
-			Config: &hmacStrategyConfigurator{Secret: secret},
+			GlobalSecret:               secret,
 		}
 
 		oAuth2HMACStrategy = &fositeoauth2.HMACSHAStrategy{

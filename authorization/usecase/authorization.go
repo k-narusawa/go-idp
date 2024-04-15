@@ -28,7 +28,10 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 	if err != nil {
 		log.Printf("Error occurred in NewAuthorizeRequest: %+v", err)
 		a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
-		return err
+		msg := map[string]interface{}{
+			"error": "server error",
+		}
+		return c.Render(http.StatusOK, "login.html", msg)
 	}
 
 	if req.Method == "GET" {

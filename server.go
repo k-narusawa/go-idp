@@ -48,7 +48,12 @@ func main() {
 		templates: template.Must(template.ParseGlob("views/*.html")),
 	}
 
-	oauth2 := oauth2.NewOauth2Provider()
+	privateKey, err := oauth2.ReadPrivatekey()
+	if err != nil {
+		panic(err)
+	}
+
+	oauth2 := oauth2.NewOauth2Provider(privateKey)
 	aUsecase := usecase.NewAuthorization(oauth2)
 	tUsecase := usecase.NewTokenUsecase(oauth2)
 	iUsecase := usecase.NewIntrospectUsecase(oauth2)
