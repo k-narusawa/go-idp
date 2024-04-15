@@ -25,5 +25,5 @@ func NewOauth2Handler(e *echo.Echo, authUsecase usecase.AuthorizationUsecase, to
 	e.POST("/oauth2/auth", handler.aUsecase.Invoke)
 	e.POST("/oauth2/token", handler.tUseCase.Invoke)
 	e.POST("/oauth2/introspect", handler.iUseCase.Invoke)
-	e.GET("/jwk", handler.jUseCase.Invoke)
+	e.GET("/oauth2/certs", handler.jUseCase.Invoke)
 }
