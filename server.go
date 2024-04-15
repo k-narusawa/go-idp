@@ -52,7 +52,8 @@ func main() {
 	aUsecase := usecase.NewAuthorization(oauth2)
 	tUsecase := usecase.NewTokenUsecase(oauth2)
 	iUsecase := usecase.NewIntrospectUsecase(oauth2)
-	adapter.NewOauth2Handler(e, aUsecase, tUsecase, iUsecase)
+	jUsecase := usecase.NewJWKUsecase()
+	adapter.NewOauth2Handler(e, aUsecase, tUsecase, iUsecase, jUsecase)
 
 	e.GET("/", client.IndexHandler)
 	e.GET("/callback", client.CallbackHandler)
