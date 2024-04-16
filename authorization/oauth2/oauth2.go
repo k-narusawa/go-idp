@@ -50,7 +50,7 @@ func NewOauth2Provider(privateKey *rsa.PrivateKey) fosite.OAuth2Provider {
 			SendDebugMessagesToClients: true,
 			ScopeStrategy:              fosite.ExactScopeStrategy,
 			RedirectSecureChecker:      fosite.IsRedirectURISecureStrict,
-			AllowedPromptValues:        []string{"none"},
+			AllowedPromptValues:        []string{"none", "login"},
 			TokenURL:                   "http://locahost:3846/oauth2/token",
 			AccessTokenLifespan:        time.Duration(oc.AccessTokenLifespan.Seconds()),
 			AccessTokenIssuer:          oc.Issuer,
