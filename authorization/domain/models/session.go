@@ -16,6 +16,7 @@ func NewSession(userId string) *openid.DefaultSession {
 	return &openid.DefaultSession{
 		Claims: &jwt.IDTokenClaims{
 			Issuer:      "go-idp",
+			Audience:    []string{"go-client"},
 			Subject:     userId,
 			IssuedAt:    time.Now(),
 			RequestedAt: time.Now(),

@@ -9,7 +9,7 @@ import (
 )
 
 func ReadPrivatekey() (*rsa.PrivateKey, error) {
-	data, err := os.ReadFile("cert/private-key.pem")
+	data, err := os.ReadFile("cert/private.pem")
 	if err != nil {
 		return nil, err
 	}
