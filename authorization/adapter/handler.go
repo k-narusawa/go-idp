@@ -31,7 +31,7 @@ func NewOauth2Handler(e *echo.Echo, authUsecase usecase.AuthorizationUsecase, to
 
 func wellKnownOpenIDConfiguration(c echo.Context) error {
 	return c.JSON(200, map[string]interface{}{
-		"issuer":                 "http://localhost:3846",
+		"issuer":                 "go-idp",
 		"authorization_endpoint": "http://localhost:3846/oauth2/auth",
 		"token_endpoint":         "http://localhost:3846/oauth2/token",
 		"jwks_uri":               "http://localhost:3846/oauth2/certs",

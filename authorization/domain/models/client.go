@@ -29,7 +29,7 @@ func (c *Client) GetHashedSecret() []byte {
 }
 
 func (c *Client) GetRedirectURIs() []string {
-	return []string{"http://localhost:3846/callback"}
+	return strings.Split(c.RedirectURIs, ",")
 }
 
 func (c *Client) GetGrantTypes() fosite.Arguments {

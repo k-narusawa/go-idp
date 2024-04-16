@@ -6,7 +6,7 @@ export const authOptions: NextAuthOptions = {
       id: process.env.CLIENT_ID ? process.env.CLIENT_ID : "",
       name: process.env.CLIENT_NAME ? process.env.CLIENT_NAME : "",
       type: "oauth",
-      wellKnown: process.env.IDP_URL + "/well-known/openid-configuration",
+      wellKnown: process.env.IDP_URL + "/.well-known/openid-configuration",
       authorization: {
         params: {
           grant_type: "authorization_code",
@@ -18,7 +18,7 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
       client: {
-        token_endpoint_auth_method: "client_secret_post",
+        token_endpoint_auth_method: "client_secret_basic",
       },
       async profile(profile) {
         return {
@@ -32,7 +32,7 @@ export const authOptions: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       if (url.startsWith(baseUrl)) return url;
       if (url === "signOut") {
-        const logoutEndpointUrl = "http://localhost:44444/oauth2/auth/logout";
+        const logoutEndpointUrl = "http://localhost:3846/oauth2/auth/logout";
         return `${logoutEndpointUrl}`;
       }
       // Allows relative callback URLs
