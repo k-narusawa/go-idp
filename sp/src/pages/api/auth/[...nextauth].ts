@@ -29,18 +29,6 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    async redirect({ url, baseUrl }) {
-      if (url.startsWith(baseUrl)) return url;
-      if (url === "signOut") {
-        const logoutEndpointUrl = "http://localhost:3846/oauth2/auth/logout";
-        return `${logoutEndpointUrl}`;
-      }
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return new URL(url, baseUrl).toString();
-      // Redirect to root when the redirect URL is still an external domain
-      return baseUrl;
-    },
-
     async jwt({ token, user, account }) {
       token.accessToken ??= account?.access_token;
       token.refreshToken ??= account?.refresh_token;
