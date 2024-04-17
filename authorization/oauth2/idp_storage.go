@@ -20,6 +20,7 @@ type IdpStorage struct {
 	AuthorizationCodes []models.AuthorizationCode
 	AccessTokens       []models.AccessToken
 	RefreshTokens      []models.RefreshToken
+	PKCES              []models.PKCE
 }
 
 func NewIdpStorage() *IdpStorage {
@@ -285,4 +286,51 @@ func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode
 func (s *IdpStorage) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID string, signature string) error {
 	// no configuration option is available; grace period is not available with memory store
 	return s.RevokeRefreshToken(ctx, requestID)
+}
+
+func (s *IdpStorage) CreatePKCERequestSession(_ context.Context, code string, req fosite.Requester) error {
+	db := gateway.Connect()
+
+	pkce := models.PKCEOf(code, req)
+
+	result := db.Create(&pkce)
+	if result.Error != nil {
+		log.Printf("Error occurred in CreatePKCERequestSession: %+v", result.Error)
+		return result.Error
+	}
+
+	log.Printf("CreatePKCERequestSession Signature: %+v", code)
+	return nil
+}
+
+func (s *IdpStorage) GetPKCERequestSession(_ context.Context, code string, _ fosite.Session) (fosite.Requester, error) {
+	db := gateway.Connect()
+
+	var pkce models.PKCE
+	result := db.Where("signature=?", code).First(&pkce)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			log.Printf("No record found for signature: %s", code)
+			return nil, fosite.ErrNotFound
+		}
+		log.Printf("Error occurred in GetPKCERequestSession: %+v", result.Error)
+		return nil, result.Error
+	}
+
+	log.Printf("GetPKCERequestSession Signature: %+v", code)
+	return pkce.ToRequester(), nil
+}
+
+func (s *IdpStorage) DeletePKCERequestSession(_ context.Context, code string) error {
+	db := gateway.Connect()
+
+	result := db.Where("signature=?", code).Delete(&models.PKCE{})
+	if result.Error != nil {
+		log.Printf("Error occurred in DeletePKCERequestSession: %+v", result.Error)
+		return result.Error
+	}
+
+	log.Printf("DeletePKCERequestSession Signature: %+v", code)
+	return nil
 }

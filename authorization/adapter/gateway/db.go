@@ -19,6 +19,7 @@ func DbInit() {
 	db.AutoMigrate(&models.AuthorizationCode{})
 	db.AutoMigrate(&models.AccessToken{})
 	db.AutoMigrate(&models.RefreshToken{})
+	db.AutoMigrate(&models.PKCE{})
 
 	testUser := models.NewUser("test@example.com", "password")
 	db.Create(&testUser)
