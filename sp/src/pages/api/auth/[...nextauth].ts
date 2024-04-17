@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
         },
       },
       idToken: true,
-      checks: ["state", "pkce"],
+      checks: ["state", "pkce", "nonce"],
       clientId: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
       client: {

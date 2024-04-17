@@ -102,7 +102,13 @@ func (rt *RefreshToken) SetSession(session fosite.Session) {
 }
 
 func (rt *RefreshToken) GetRequestForm() url.Values {
-	return url.Values{}
+	form, err := url.ParseQuery(rt.FormData)
+	if err != nil {
+		log.Printf("Error occurred in GetRequestForm: %+v", err)
+		return nil
+	}
+
+	return form
 }
 
 func (rt *RefreshToken) Merge(requester fosite.Requester) {

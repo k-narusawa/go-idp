@@ -107,7 +107,13 @@ func (ac *AuthorizationCode) SetSession(session fosite.Session) {
 }
 
 func (ac *AuthorizationCode) GetRequestForm() url.Values {
-	return url.Values{}
+	form, err := url.ParseQuery(ac.FormData)
+	if err != nil {
+		log.Printf("Error occurred in GetRequestForm: %+v", err)
+		return nil
+	}
+
+	return form
 }
 
 func (ac *AuthorizationCode) Merge(requester fosite.Requester) {

@@ -103,7 +103,13 @@ func (is *IDSession) SetSession(session fosite.Session) {
 }
 
 func (is *IDSession) GetRequestForm() url.Values {
-	return url.Values{}
+	form, err := url.ParseQuery(is.FormData)
+	if err != nil {
+		log.Printf("Error occurred in GetRequestForm: %+v", err)
+		return nil
+	}
+
+	return form
 }
 
 func (is *IDSession) Merge(requester fosite.Requester) {
