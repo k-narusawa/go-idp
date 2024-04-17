@@ -6,8 +6,11 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/ory/fosite"
+	"github.com/ory/fosite/handler/openid"
 )
 
 type AuthorizationUsecase struct {
@@ -47,29 +50,50 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		ar.GrantScope(scope)
 	}
 
-	un := req.PostForm.Get("username")
-	p := req.PostForm.Get("password")
+	sess, _ := session.Get("session", c)
+	var mySessionData *openid.DefaultSession
 
-	db := gateway.Connect()
-	var user models.User
-	res := db.Where("username=?", un).First(&user)
-	if res.Error != nil {
-		log.Printf("Error occurred in GetClient: %+v", res.Error)
-		msg := map[string]interface{}{
-			"error": "Invalid username or password",
+	if sess.Values["go-idp"] != nil {
+		idpSession := sess.Values["go-idp"].(openid.DefaultSession)
+		mySessionData = models.NewSession(idpSession.Subject)
+		if err != nil {
+			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
+			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
+			return err
 		}
-		return c.Render(http.StatusOK, "login.html", msg)
-	}
+	} else {
+		un := req.PostForm.Get("username")
+		p := req.PostForm.Get("password")
 
-	if err := user.Authenticate(p); err != nil {
-		log.Printf("Error occurred in Authenticate: %+v", err)
-		msg := map[string]interface{}{
-			"error": "Invalid username or password",
+		db := gateway.Connect()
+		var user models.User
+		res := db.Where("username=?", un).First(&user)
+		if res.Error != nil {
+			log.Printf("Error occurred in GetClient: %+v", res.Error)
+			msg := map[string]interface{}{
+				"error": "Invalid username or password",
+			}
+			return c.Render(http.StatusOK, "login.html", msg)
 		}
-		return c.Render(http.StatusOK, "login.html", msg)
-	}
 
-	mySessionData := models.NewSession(user.UserID)
+		if err := user.Authenticate(p); err != nil {
+			log.Printf("Error occurred in Authenticate: %+v", err)
+			msg := map[string]interface{}{
+				"error": "Invalid username or password",
+			}
+			return c.Render(http.StatusOK, "login.html", msg)
+		}
+
+		mySessionData = models.NewSession(user.UserID)
+		sess.Values["go-idp"] = mySessionData
+		sess.Options = &sessions.Options{
+			Path:     "/",
+			MaxAge:   86400,
+			HttpOnly: true,
+		}
+
+		sess.Save(c.Request(), c.Response())
+	}
 
 	// When using the HMACSHA strategy you must use something that implements the HMACSessionContainer.
 	// It brings you the power of overriding the default values.
