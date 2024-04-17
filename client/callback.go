@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"idp/authorization/domain/models"
 	"io"
 	"log"
 	"net/http"
@@ -47,7 +46,7 @@ func CallbackHandler(c echo.Context) error {
 		log.Fatal(err)
 	}
 
-	var tr models.TokenResponse
+	var tr TokenResponse
 	err = json.Unmarshal(b, &tr)
 	if err != nil {
 		log.Fatal(err)

@@ -1,4 +1,4 @@
-package models
+package client
 
 type TokenResponse struct {
 	AccessToken  string `json:"access_token"`
