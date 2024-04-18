@@ -40,14 +40,14 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 	var authSession *openid.DefaultSession
 	canSkip := false
 
-	idpCookie, _ := c.Cookie("go-idp-session")
+	// idpCookie, _ := c.Cookie("go-idp-session")
 
-	if idpCookie != nil {
-		authSession = models.NewSession(idpCookie.Value)
+	// if idpCookie != nil {
+	// 	authSession = models.NewSession(idpCookie.Value)
 
-		// TODO: スキップ可能かチェックする
-		canSkip = true
-	}
+	// 	// TODO: スキップ可能かチェックする
+	// 	canSkip = true
+	// }
 
 	if !canSkip && req.Method == "GET" {
 		return c.Render(http.StatusOK, "login.html", nil)
