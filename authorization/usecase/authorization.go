@@ -37,31 +37,27 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		return c.Render(http.StatusOK, "login.html", msg)
 	}
 
-	if req.Method == "GET" {
-		return c.Render(http.StatusOK, "login.html", nil)
+	var authSession *openid.DefaultSession
+	canSkip := false
+
+	idpCookie, _ := c.Cookie("go-idp-session")
+
+	if idpCookie != nil {
+		authSession = models.NewSession(idpCookie.Value)
+
+		// TODO: スキップ可能かチェックする
+		canSkip = true
 	}
 
-	// req.ParseForm()
-	// if req.PostForm.Get("username") != "peter" {
-	// 	return c.Render(http.StatusOK, "login.html", nil)
-	// }
+	if !canSkip && req.Method == "GET" {
+		return c.Render(http.StatusOK, "login.html", nil)
+	}
 
 	for _, scope := range req.PostForm["scopes"] {
 		ar.GrantScope(scope)
 	}
 
-	sess, _ := session.Get("session", c)
-	var mySessionData *openid.DefaultSession
-
-	if sess.Values["go-idp"] != nil {
-		idpSession := sess.Values["go-idp"].(openid.DefaultSession)
-		mySessionData = models.NewSession(idpSession.Subject)
-		if err != nil {
-			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
-			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
-			return err
-		}
-	} else {
+	if !canSkip {
 		un := req.PostForm.Get("username")
 		p := req.PostForm.Get("password")
 
@@ -84,34 +80,20 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 			return c.Render(http.StatusOK, "login.html", msg)
 		}
 
-		mySessionData = models.NewSession(user.UserID)
-		sess.Values["go-idp"] = mySessionData
+		sess, _ := session.Get("go-idp-session", c)
 		sess.Options = &sessions.Options{
 			Path:     "/",
-			MaxAge:   86400,
+			MaxAge:   86400 * 7,
 			HttpOnly: true,
 		}
-
+		sess.Values["go-idp-session"] = user.UserID
 		sess.Save(c.Request(), c.Response())
+
+		authSession = models.NewSession(user.UserID)
 	}
 
-	// When using the HMACSHA strategy you must use something that implements the HMACSessionContainer.
-	// It brings you the power of overriding the default values.
-	//
-	// mySessionData.HMACSession = &strategy.HMACSession{
-	//	AccessTokenExpiry: time.Now().Add(time.Day),
-	//	AuthorizeCodeExpiry: time.Now().Add(time.Day),
-	// }
-	//
-
-	// If you're using the JWT strategy, there's currently no distinction between access token and authorize code claims.
-	// Therefore, you both access token and authorize code will have the same "exp" claim. If this is something you
-	// need let us know on github.
-	//
-	// mySessionData.JWTClaims.ExpiresAt = time.Now().Add(time.Day)
-
 	ar.SetResponseTypeHandled("code")
-	response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, mySessionData)
+	response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, authSession)
 
 	if err != nil {
 		log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
