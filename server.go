@@ -8,6 +8,8 @@ import (
 	"idp/authorization/oauth2"
 	"idp/authorization/usecase"
 	"idp/client"
+	ra "idp/resourceserver/adapter"
+	ru "idp/resourceserver/usecase"
 	"io"
 	"os"
 	"strings"
@@ -70,6 +72,9 @@ func main() {
 	e.GET("/", client.IndexHandler)
 	e.GET("/callback", client.CallbackHandler)
 	e.GET("/userinfo", client.UserInfoHandler)
+
+	uu := ru.UserinfoUsecase{}
+	ra.NewResourceServerHandler(e, uu)
 
 	e.Logger.Fatal(e.Start(":3846"))
 }
