@@ -1,0 +1,17 @@
+{
+  "name": "go-idp-openapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "docs": "browser-sync start --server --files *",
+    "gen": "redocly build-docs src/openapi.yml -o docs/index.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@redocly/cli": "^1.9.1",
+    "browser-sync": "^3.0.2"
+  }
+}

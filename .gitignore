@@ -1,2 +1,4 @@
 *.db
 __debug_*
+
+/openapi/node_modules
