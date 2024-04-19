@@ -27,6 +27,10 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 
 	ctx := req.Context()
 
+	if req.Method == "GET" {
+		return c.Render(http.StatusOK, "login.html", nil)
+	}
+
 	ar, err := a.oauth2.NewAuthorizeRequest(ctx, req)
 	if err != nil {
 		log.Printf("Error occurred in NewAuthorizeRequest: %+v", err)
@@ -48,10 +52,6 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 	// 	// TODO: スキップ可能かチェックする
 	// 	canSkip = true
 	// }
-
-	if !canSkip && req.Method == "GET" {
-		return c.Render(http.StatusOK, "login.html", nil)
-	}
 
 	for _, scope := range req.PostForm["scopes"] {
 		ar.GrantScope(scope)
