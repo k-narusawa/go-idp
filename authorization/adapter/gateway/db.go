@@ -21,7 +21,7 @@ func DbInit() {
 	db.AutoMigrate(&models.RefreshToken{})
 	db.AutoMigrate(&models.PKCE{})
 
-	testUser := models.NewUser("test@example.com", "password")
+	testUser := models.NewUser("test@example.com", "!Password0")
 	db.Create(&testUser)
 	db.Create(&models.Client{
 		ID:             "my-client",
