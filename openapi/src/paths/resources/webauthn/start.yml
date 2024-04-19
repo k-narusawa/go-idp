@@ -1,0 +1,15 @@
+get:
+  operationId: webauthnStart
+  tags: 
+    - webauthn
+  summary: 登録開始
+  description: WebAuthn 登録開始
+  # security:
+  #   - Bearer: []
+  responses:
+    '200':
+      description: WebAuthn 登録開始
+      content:
+        application/json:
+          schema:
+            $ref: '../../../components/schemas/WebAuthnStartResponse.yml'

@@ -1,0 +1,88 @@
+type: object
+required:
+  - rp
+  - user
+  - challenge
+  - pubKeyCredParams
+  - timeout
+  - excludeCredentials
+  - authenticatorSelection
+  - attestation
+properties:
+  rp:
+    type: object
+    properties:
+      id:
+        type: string
+        example: "example.com"
+      name:
+        type: string
+        example: "Example"
+  user:
+    type: object
+    properties:
+      id:
+        type: string
+        example: "1234567890"
+      name:
+        type: string
+        example: "John Doe"
+      displayName:
+        type: string
+        example: "John Doe"
+  challenge:
+    type: string
+    example: "R_g3M58WQWSas4mjL2SVKg"
+  pubKeyCredParams:
+    type: array
+    items:
+      type: object
+      properties:
+        alg:
+          type: integer
+          format: int64
+          example: -7
+        type:
+          type: string
+          example: "public-key"
+  timeout:
+    type: integer
+    example: 60000
+  excludeCredentials:
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1234567890"
+        type:
+          type: string
+          example: "public-key"
+  authenticatorSelection:
+    type: object
+    properties:
+      authenticatorAttachment:
+        type: string
+        example: "cross-platform"
+      requireResidentKey:
+        type: boolean
+        example: false
+      userVerification:
+        type: string
+        example: "required"
+  attestation: 
+    type: string
+    example: "none"
+  extensions:
+    type: object
+    properties:
+      appid:
+        type: string
+        example: "https://example.com"
+      authnSel:
+        type: string
+        example: "required"
+      exts:
+        type: boolean
+        example: true
