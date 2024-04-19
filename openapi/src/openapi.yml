@@ -13,7 +13,7 @@ paths:
   /api/v1/webauthn/start:
     $ref: './paths/resources/webauthn/start.yml'
 
-# components: 
-#   securitySchemes:
-#     Bearer:
-#       $ref: './components/security/bearerAuth.yml'
+components: 
+  securitySchemes:
+    Bearer:
+      $ref: './components/security/bearerAuth.yml'

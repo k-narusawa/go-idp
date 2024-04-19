@@ -4,8 +4,8 @@ get:
     - webauthn
   summary: 登録開始
   description: WebAuthn 登録開始
-  # security:
-  #   - Bearer: []
+  security:
+    - Bearer: []
   responses:
     '200':
       description: WebAuthn 登録開始
