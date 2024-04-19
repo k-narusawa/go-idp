@@ -86,6 +86,8 @@ func NewOauth2Provider(privateKey *rsa.PrivateKey) fosite.OAuth2Provider {
 		compose.OpenIDConnectExplicitFactory,
 
 		compose.OAuth2TokenIntrospectionFactory,
+		compose.OAuth2TokenRevocationFactory,
+
 		compose.OAuth2PKCEFactory,
 	)
 }

@@ -88,7 +88,11 @@ func (s *IdpStorage) GetAccessTokenSession(ctx context.Context, signature string
 	db := gateway.Connect()
 
 	var at models.AccessToken
-	result := db.Where("signature=?", signature).First(&at)
+	// result := db.Where("signature=?", signature).First(&at)
+	result := db.
+		Preload("Client").
+		Where("signature=?", signature).
+		Find(&at)
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -212,7 +216,8 @@ func (s *IdpStorage) DeleteRefreshTokenSession(ctx context.Context, signature st
 func (s *IdpStorage) RevokeAccessToken(ctx context.Context, requestID string) error {
 	db := gateway.Connect()
 
-	result := db.Where("signature=?", requestID).Delete(&models.AccessToken{})
+	// FIXME: アクセストークンをクライアントIDで削除するのはおかしい
+	result := db.Where("client_id=?", requestID).Delete(&models.AccessToken{})
 	if result.Error != nil {
 		log.Printf("Error occurred in RevokeAccessToken: %+v", result.Error)
 		return result.Error
@@ -225,7 +230,8 @@ func (s *IdpStorage) RevokeAccessToken(ctx context.Context, requestID string) er
 func (s *IdpStorage) RevokeRefreshToken(ctx context.Context, requestID string) error {
 	db := gateway.Connect()
 
-	result := db.Where("signature=?", requestID).Delete(&models.RefreshToken{})
+	// FIXME: アクセストークンをクライアントIDで削除するのはおかしい
+	result := db.Where("client_id=?", requestID).Delete(&models.RefreshToken{})
 	if result.Error != nil {
 		log.Printf("Error occurred in RevokeRefreshToken: %+v", result.Error)
 		return result.Error
