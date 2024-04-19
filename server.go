@@ -14,6 +14,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo-contrib/session"
@@ -59,6 +60,17 @@ func main() {
 		panic(err)
 	}
 
+	wconfig := &webauthn.Config{
+		RPDisplayName: "Go Webauthn",
+		RPID:          "go-webauthn.local",
+		RPOrigins:     []string{"https://login.go-webauthn.local"},
+	}
+
+	webAuthn, err := webauthn.New(wconfig)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	e.Static("/static", "static")
 
 	oauth2 := oauth2.NewOauth2Provider(privateKey)
@@ -74,7 +86,8 @@ func main() {
 	e.GET("/userinfo", client.UserInfoHandler)
 
 	uu := ru.UserinfoUsecase{}
-	ra.NewResourceServerHandler(e, uu)
+	wu := ru.NewWebauthnUsecase(*webAuthn)
+	ra.NewResourceServerHandler(e, uu, wu)
 
 	e.Logger.Fatal(e.Start(":3846"))
 }
