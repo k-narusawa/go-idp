@@ -57,6 +57,8 @@ func main() {
 		panic(err)
 	}
 
+	e.Static("/static", "static")
+
 	oauth2 := oauth2.NewOauth2Provider(privateKey)
 	aUsecase := usecase.NewAuthorization(oauth2)
 	tUsecase := usecase.NewTokenUsecase(oauth2)

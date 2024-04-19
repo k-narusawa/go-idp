@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Identity Provider</title>
-</head>
-<body>
-  <h1>Login page</h1>
-  <p>{{.error}}</p>
-  <form method="post">
-    <input type="hidden" name="scopes" value="openid" />
-    <input type="hidden" name="scopes" value="offline" />
-    <input type="text" name="username" value="test@example.com" />
-    <input type="password" name="password" value="password" />
-    <input type="submit" value="Login">
-  </form>
-  <script>
-    window.msg = "{{.}}";
-  </script>
-</body>
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <h1>Login page</h1>
+    <p class="error">{{.error}}</p>
+    <form method="post">
+      <input type="hidden" name="scopes" value="openid" />
+      <input type="hidden" name="scopes" value="offline" />
+      <input type="text" name="username" value="test@example.com" />
+      <input type="password" name="password" value="password" />
+      <input type="submit" value="Login" />
+    </form>
+    <script>
+      window.msg = "{{.}}";
+    </script>
+  </body>
 </html>
