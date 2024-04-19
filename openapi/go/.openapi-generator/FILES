@@ -1,0 +1,16 @@
+.docs/api/openapi.yaml
+.openapi-generator-ignore
+Dockerfile
+README.md
+go.mod
+handlers/api_webauthn.go
+handlers/container.go
+main.go
+models/hello-world.go
+models/model_web_authn_start_response.go
+models/model_web_authn_start_response_authenticator_selection.go
+models/model_web_authn_start_response_exclude_credentials_inner.go
+models/model_web_authn_start_response_extensions.go
+models/model_web_authn_start_response_pub_key_cred_params_inner.go
+models/model_web_authn_start_response_rp.go
+models/model_web_authn_start_response_user.go
