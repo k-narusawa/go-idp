@@ -23,4 +23,5 @@ func NewResourceServerHandler(e *echo.Echo, uu usecase.UserinfoUsecase, wu useca
 
 	rs.GET("/userinfo", handler.uu.GetUserinfo)
 	rs.GET("/webauthn", handler.wu.Start)
+	rs.POST("/webauthn", handler.wu.Finish)
 }

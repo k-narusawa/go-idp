@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"idp/authorization/domain/models"
+	cm "idp/common/domain/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -20,6 +21,7 @@ func DbInit() {
 	db.AutoMigrate(&models.AccessToken{})
 	db.AutoMigrate(&models.RefreshToken{})
 	db.AutoMigrate(&models.PKCE{})
+	db.AutoMigrate(&cm.WebauthnSessionData{})
 
 	testUser := models.NewUser("test@example.com", "!Password0")
 	db.Create(&testUser)
