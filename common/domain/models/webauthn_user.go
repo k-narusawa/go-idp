@@ -1,48 +1,39 @@
 package models
 
 import (
-	"crypto/sha256"
-	"encoding/binary"
-
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 type WebauthnUser struct {
-	id          uint64                `gorm:"primary_key"`
-	name        string                `gorm:"unique"`
-	displayName string                `gorm:"unique"`
-	credentials []webauthn.Credential `gorm:"many2many:webauthn_user_credentials"`
+	WuID        int64                `gorm:"primaryKey"`
+	ID          string               `gorm:"type:varchar(255)"`
+	Name        string               `gorm:"unique"`
+	DisplayName string               `gorm:"unique"`
+	Credentials []WebauthnCredential `gorm:"foreignkey:ID;association_foreignkey:ID"`
 }
 
 func NewUser(name string, displayName string) *WebauthnUser {
 	user := &WebauthnUser{}
-	user.id = generateId(name)
-	user.name = name
-	user.displayName = displayName
+	user.ID = name
+	user.Name = name
+	user.DisplayName = displayName
 	return user
-}
-
-func generateId(name string) uint64 {
-	hash := sha256.Sum256([]byte(name))
-	return binary.BigEndian.Uint64(hash[:])
 }
 
 // WebAuthnID returns the user's ID
 func (wu WebauthnUser) WebAuthnID() []byte {
-	buf := make([]byte, binary.MaxVarintLen64)
-	binary.PutUvarint(buf, uint64(wu.id))
-	return buf
+	return []byte(wu.ID)
 }
 
 // WebAuthnName returns the user's username
 func (wu WebauthnUser) WebAuthnName() string {
-	return wu.name
+	return wu.Name
 }
 
 // WebAuthnDisplayName returns the user's display name
 func (wu WebauthnUser) WebAuthnDisplayName() string {
-	return wu.displayName
+	return wu.DisplayName
 }
 
 // WebAuthnIcon is not (yet) implemented
@@ -52,12 +43,16 @@ func (wu WebauthnUser) WebAuthnIcon() string {
 
 // AddCredential associates the credential to the user
 func (wu *WebauthnUser) AddCredential(cred webauthn.Credential) {
-	wu.credentials = append(wu.credentials, cred)
+	wu.Credentials = append(wu.Credentials, *FromWebauthnCredential(&cred))
 }
 
 // WebAuthnCredentials returns credentials owned by the user
 func (wu WebauthnUser) WebAuthnCredentials() []webauthn.Credential {
-	return wu.credentials
+	credentials := []webauthn.Credential{}
+	for _, cred := range wu.Credentials {
+		credentials = append(credentials, *cred.ToWebauthnCredential())
+	}
+	return credentials
 }
 
 // CredentialExcludeList returns a CredentialDescriptor array filled
@@ -65,13 +60,13 @@ func (wu WebauthnUser) WebAuthnCredentials() []webauthn.Credential {
 func (wu WebauthnUser) CredentialExcludeList() []protocol.CredentialDescriptor {
 
 	credentialExcludeList := []protocol.CredentialDescriptor{}
-	for _, cred := range wu.credentials {
-		descriptor := protocol.CredentialDescriptor{
-			Type:         protocol.PublicKeyCredentialType,
-			CredentialID: cred.ID,
-		}
-		credentialExcludeList = append(credentialExcludeList, descriptor)
-	}
+	// for _, cred := range wu.Credentials {
+	// 	descriptor := protocol.CredentialDescriptor{
+	// 		Type:         protocol.PublicKeyCredentialType,
+	// 		CredentialID: cred.ID,
+	// 	}
+	// 	credentialExcludeList = append(credentialExcludeList, descriptor)
+	// }
 
 	return credentialExcludeList
 }

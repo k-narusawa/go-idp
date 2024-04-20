@@ -22,7 +22,19 @@ func NewWebauthnUsecase(webauthn webauthn.WebAuthn) WebauthnUsecase {
 
 func (w *WebauthnUsecase) Start(c echo.Context) error {
 	ir := c.Get(("ir")).(models.IntrospectResponse)
-	user := models.NewUser(ir.Sub, "Go-IdP")
+
+	db := gateway.Connect()
+	tx := db.Begin()
+
+	user := cm.WebauthnUser{}
+	result := tx.Where("name = ?", ir.Sub).First(&user)
+
+	if result.Error != nil {
+		if result.Error.Error() != "record not found" {
+			return result.Error
+		}
+		user = *cm.NewUser(ir.Sub, "Go-IdP")
+	}
 
 	registerOptions := func(credCreationOpts *protocol.PublicKeyCredentialCreationOptions) {
 		credCreationOpts.CredentialExcludeList = user.CredentialExcludeList()
@@ -33,14 +45,14 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 		return err
 	}
 
-	db := gateway.Connect()
-
 	ws := cm.FromSessionData(sd)
 
-	result := db.Create(&ws)
+	result = tx.Create(&ws)
 	if result.Error != nil {
 		return result.Error
 	}
+
+	tx.Commit()
 
 	return c.JSON(http.StatusOK, options)
 }
@@ -48,11 +60,13 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 func (w *WebauthnUsecase) Finish(c echo.Context) error {
 	ir := c.Get(("ir")).(models.IntrospectResponse)
 
-	user := models.NewUser(ir.Sub, "Go-IdP")
+	db := gateway.Connect()
+	tx := db.Begin()
+
+	user := cm.NewUser(ir.Sub, "Go-IdP")
 
 	wsd := cm.WebauthnSessionData{}
-	db := gateway.Connect()
-	result := db.Debug().Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
+	result := tx.Debug().Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -64,9 +78,25 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 		return err
 	}
 
+	result = tx.Debug().Delete(&wsd).Where("challenge = ?", c.QueryParam("challenge"))
+	if result.Error != nil {
+		log.Printf("Error deleting session data: %+v\n", result.Error)
+		return result.Error
+	}
+
 	user.AddCredential(*credential)
 
-	log.Printf("Credential: %+v\n", credential)
+	result = tx.Debug().Create(&user.Credentials)
+	if result.Error != nil {
+		log.Printf("Error creating credentials: %+v\n", result.Error)
+		return result.Error
+	}
+	result = tx.Debug().Create(&user)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	tx.Commit()
 
 	return c.JSON(http.StatusOK, credential)
 }
