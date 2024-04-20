@@ -22,8 +22,7 @@ func DbInit() {
 	db.AutoMigrate(&models.RefreshToken{})
 	db.AutoMigrate(&models.PKCE{})
 
-	db.AutoMigrate(&cm.WebauthnUser{})
-	db.AutoMigrate(&cm.WebauthnCredential{})
+	db.AutoMigrate(&cm.WebauthnUser{}, &cm.WebauthnCredential{})
 	db.AutoMigrate(&cm.WebauthnSessionData{})
 
 	testUser := models.NewUser("test@example.com", "!Password0")

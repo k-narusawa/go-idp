@@ -6,11 +6,13 @@ import (
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"gorm.io/gorm"
 )
 
 type WebauthnCredential struct {
+	gorm.Model
 	CredID          int64  `gorm:"primaryKey"`
-	ID              string `gorm:"type:varchar(255)"`
+	ID              string `gorm:"type:text;index"`
 	PublicKey       []byte `gorm:"type:blob"`
 	AttestationType string `gorm:"type:text"`
 	Transport       string `gorm:"type:text"`

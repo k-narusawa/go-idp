@@ -88,7 +88,7 @@ func (s *IdpStorage) GetAccessTokenSession(ctx context.Context, signature string
 	db := gateway.Connect()
 
 	var at models.AccessToken
-	// result := db.Where("signature=?", signature).First(&at)
+
 	result := db.
 		Preload("Client").
 		Where("signature=?", signature).

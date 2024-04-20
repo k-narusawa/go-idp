@@ -3,14 +3,16 @@ package models
 import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"gorm.io/gorm"
 )
 
 type WebauthnUser struct {
+	gorm.Model
 	WuID        int64                `gorm:"primaryKey"`
-	ID          string               `gorm:"type:varchar(255)"`
-	Name        string               `gorm:"unique"`
-	DisplayName string               `gorm:"unique"`
-	Credentials []WebauthnCredential `gorm:"foreignkey:ID;association_foreignkey:ID"`
+	ID          string               `gorm:"type:text"`
+	Name        string               `gorm:"varchar(255)"`
+	DisplayName string               `gorm:"varchar(255)"`
+	Credentials []WebauthnCredential `gorm:"foreignKey:ID;references:ID"`
 }
 
 func NewUser(name string, displayName string) *WebauthnUser {

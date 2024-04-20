@@ -31,9 +31,15 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 
 	if result.Error != nil {
 		if result.Error.Error() != "record not found" {
+			tx.Rollback()
 			return result.Error
 		}
 		user = *cm.NewUser(ir.Sub, "Go-IdP")
+		result = tx.Create(&user)
+		if result.Error != nil {
+			tx.Rollback()
+			return result.Error
+		}
 	}
 
 	registerOptions := func(credCreationOpts *protocol.PublicKeyCredentialCreationOptions) {
@@ -42,6 +48,7 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 
 	options, sd, err := w.webauthn.BeginRegistration(user, registerOptions)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
@@ -49,6 +56,7 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 
 	result = tx.Create(&ws)
 	if result.Error != nil {
+		tx.Rollback()
 		return result.Error
 	}
 
@@ -68,6 +76,7 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 	wsd := cm.WebauthnSessionData{}
 	result := tx.Debug().Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
 	if result.Error != nil {
+		tx.Rollback()
 		return result.Error
 	}
 
@@ -88,15 +97,39 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 
 	result = tx.Debug().Create(&user.Credentials)
 	if result.Error != nil {
-		log.Printf("Error creating credentials: %+v\n", result.Error)
+		tx.Rollback()
 		return result.Error
 	}
 	result = tx.Debug().Create(&user)
 	if result.Error != nil {
+		tx.Rollback()
 		return result.Error
 	}
 
 	tx.Commit()
 
 	return c.JSON(http.StatusOK, credential)
+}
+
+func (w *WebauthnUsecase) Get(c echo.Context) error {
+	ir := c.Get(("ir")).(models.IntrospectResponse)
+
+	db := gateway.Connect()
+	tx := db.Begin()
+
+	wu := cm.WebauthnUser{}
+	result := tx.Debug().
+		Preload("Credentials").
+		Where("name = ?", ir.Sub).
+		Find(&wu)
+	if result.Error != nil {
+		tx.Rollback()
+		return result.Error
+	}
+
+	cred := wu.WebAuthnCredentials()
+
+	tx.Commit()
+
+	return c.JSON(http.StatusOK, cred)
 }
