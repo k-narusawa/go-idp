@@ -9,10 +9,10 @@ import (
 )
 
 type WebauthnUser struct {
-	id          uint64
-	name        string
-	displayName string
-	credentials []webauthn.Credential
+	id          uint64                `gorm:"primary_key"`
+	name        string                `gorm:"unique"`
+	displayName string                `gorm:"unique"`
+	credentials []webauthn.Credential `gorm:"many2many:webauthn_user_credentials"`
 }
 
 func NewUser(name string, displayName string) *WebauthnUser {

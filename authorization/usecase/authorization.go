@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"idp/authorization/adapter/gateway"
 	"idp/authorization/domain/models"
+	"idp/common/adapter/gateway"
 	"log"
 	"net/http"
 
