@@ -74,7 +74,7 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 	user := cm.NewUser(ir.Sub, "Go-IdP")
 
 	wsd := cm.WebauthnSessionData{}
-	result := tx.Debug().Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
+	result := tx.Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
 	if result.Error != nil {
 		tx.Rollback()
 		return result.Error
@@ -87,7 +87,7 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 		return err
 	}
 
-	result = tx.Debug().Delete(&wsd).Where("challenge = ?", c.QueryParam("challenge"))
+	result = tx.Delete(&wsd).Where("challenge = ?", c.QueryParam("challenge"))
 	if result.Error != nil {
 		log.Printf("Error deleting session data: %+v\n", result.Error)
 		return result.Error
@@ -95,12 +95,12 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 
 	user.AddCredential(*credential)
 
-	result = tx.Debug().Create(&user.Credentials)
+	result = tx.Create(&user.Credentials)
 	if result.Error != nil {
 		tx.Rollback()
 		return result.Error
 	}
-	result = tx.Debug().Create(&user)
+	result = tx.Create(&user)
 	if result.Error != nil {
 		tx.Rollback()
 		return result.Error
@@ -118,7 +118,7 @@ func (w *WebauthnUsecase) Get(c echo.Context) error {
 	tx := db.Begin()
 
 	wu := cm.WebauthnUser{}
-	result := tx.Debug().
+	result := tx.
 		Preload("Credentials").
 		Where("name = ?", ir.Sub).
 		Find(&wu)
