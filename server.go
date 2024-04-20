@@ -63,7 +63,7 @@ func main() {
 	wconfig := &webauthn.Config{
 		RPDisplayName: "Go Webauthn",
 		RPID:          "localhost",
-		RPOrigins:     []string{"localhost"},
+		RPOrigins:     []string{"localhost", "http://localhost:3000"},
 	}
 
 	webAuthn, err := webauthn.New(wconfig)

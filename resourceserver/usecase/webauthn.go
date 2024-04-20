@@ -47,11 +47,12 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 
 func (w *WebauthnUsecase) Finish(c echo.Context) error {
 	ir := c.Get(("ir")).(model.IntrospectResponse)
+
 	user := model.NewUser(ir.Sub, "Go-IdP")
 
 	wsd := cm.WebauthnSessionData{}
 	db := gateway.Connect()
-	result := db.Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
+	result := db.Debug().Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
 	if result.Error != nil {
 		return result.Error
 	}

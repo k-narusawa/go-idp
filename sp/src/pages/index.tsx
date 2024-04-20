@@ -23,7 +23,6 @@ const Home = ({ session }: Props) => {
     const json = await axios
       .get("/api/resources/webauthn")
       .then((response) => {
-        console.log(response.data);
         return response.data;
       })
       .catch((error) => {
@@ -43,6 +42,19 @@ const Home = ({ session }: Props) => {
     }
 
     const response = await create(json);
+
+    await axios
+      .post("/api/resources/webauthn", response, {
+        params: {
+          challenge: json.publicKey.challenge,
+        },
+      })
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   };
 
   if (session) {

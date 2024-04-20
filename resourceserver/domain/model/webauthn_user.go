@@ -1,7 +1,7 @@
 package model
 
 import (
-	"crypto/rand"
+	"crypto/sha256"
 	"encoding/binary"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -17,16 +17,15 @@ type WebauthnUser struct {
 
 func NewUser(name string, displayName string) *WebauthnUser {
 	user := &WebauthnUser{}
-	user.id = randomUint64()
+	user.id = generateId(name)
 	user.name = name
 	user.displayName = displayName
 	return user
 }
 
-func randomUint64() uint64 {
-	buf := make([]byte, 8)
-	rand.Read(buf)
-	return binary.LittleEndian.Uint64(buf)
+func generateId(name string) uint64 {
+	hash := sha256.Sum256([]byte(name))
+	return binary.BigEndian.Uint64(hash[:])
 }
 
 // WebAuthnID returns the user's ID
