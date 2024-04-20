@@ -1,4 +1,4 @@
-package model
+package models
 
 type IntrospectResponse struct {
 	Active   bool     `json:"active"`

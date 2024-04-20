@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"encoding/json"
-	"idp/resourceserver/domain/model"
+	model "idp/resourceserver/domain/models"
 	"io"
 	"log"
 	"net/http"

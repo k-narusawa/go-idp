@@ -3,7 +3,7 @@ package usecase
 import (
 	"idp/common/adapter/gateway"
 	cm "idp/common/domain/models"
-	"idp/resourceserver/domain/model"
+	"idp/resourceserver/domain/models"
 	"log"
 	"net/http"
 
@@ -21,8 +21,8 @@ func NewWebauthnUsecase(webauthn webauthn.WebAuthn) WebauthnUsecase {
 }
 
 func (w *WebauthnUsecase) Start(c echo.Context) error {
-	ir := c.Get(("ir")).(model.IntrospectResponse)
-	user := model.NewUser(ir.Sub, "Go-IdP")
+	ir := c.Get(("ir")).(models.IntrospectResponse)
+	user := models.NewUser(ir.Sub, "Go-IdP")
 
 	registerOptions := func(credCreationOpts *protocol.PublicKeyCredentialCreationOptions) {
 		credCreationOpts.CredentialExcludeList = user.CredentialExcludeList()
@@ -46,9 +46,9 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 }
 
 func (w *WebauthnUsecase) Finish(c echo.Context) error {
-	ir := c.Get(("ir")).(model.IntrospectResponse)
+	ir := c.Get(("ir")).(models.IntrospectResponse)
 
-	user := model.NewUser(ir.Sub, "Go-IdP")
+	user := models.NewUser(ir.Sub, "Go-IdP")
 
 	wsd := cm.WebauthnSessionData{}
 	db := gateway.Connect()
