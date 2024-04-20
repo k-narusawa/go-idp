@@ -70,7 +70,6 @@ export const authOptions: NextAuthOptions = {
   //     options: { sameSite: "lax", path: "/", secure: false },
   //   },
   // },
-  debug: true,
 };
 
 export default NextAuth(authOptions);
