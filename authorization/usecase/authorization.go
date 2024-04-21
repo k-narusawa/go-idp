@@ -102,7 +102,28 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		return err
 	}
 
-	a.oauth2.WriteAuthorizeResponse(ctx, rw, ar, response)
+	redirectTo := createRedirectTo(ar, response)
 
-	return nil
+	// a.oauth2.WriteAuthorizeResponse(ctx, rw, ar, response)
+
+	return c.JSON(http.StatusOK, AuthorizationResponse{RedirectTo: redirectTo})
+}
+
+type AuthorizationResponse struct {
+	RedirectTo string `json:"redirect_to"`
+}
+
+func createRedirectTo(ar fosite.AuthorizeRequester, response fosite.AuthorizeResponder) string {
+	redirectTo := ar.GetRedirectURI()
+
+	params := response.GetParameters()
+
+	query := redirectTo.Query()
+	for k := range params {
+		query.Set(k, params.Get(k))
+	}
+
+	redirectTo.RawQuery = query.Encode()
+
+	return redirectTo.String()
 }
