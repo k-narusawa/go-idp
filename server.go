@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"idp/authorization/adapter"
+	oa "idp/authorization/adapter"
 	"idp/authorization/oauth2"
-	"idp/authorization/usecase"
-	"idp/client"
+	ou "idp/authorization/usecase"
+	ca "idp/common/adapter"
 	"idp/common/adapter/gateway"
+	cu "idp/common/usecase"
 	ra "idp/resourceserver/adapter"
 	ru "idp/resourceserver/usecase"
 	"io"
@@ -60,6 +61,8 @@ func main() {
 		panic(err)
 	}
 
+	oauth2 := oauth2.NewOauth2Provider(privateKey)
+
 	wconfig := &webauthn.Config{
 		RPDisplayName: "Go Webauthn",
 		RPID:          "localhost",
@@ -73,18 +76,19 @@ func main() {
 
 	e.Static("/static", "static")
 
-	oauth2 := oauth2.NewOauth2Provider(privateKey)
-	aUsecase := usecase.NewAuthorization(oauth2)
-	tUsecase := usecase.NewTokenUsecase(oauth2)
-	iUsecase := usecase.NewIntrospectUsecase(oauth2)
-	rUsecase := usecase.NewRevokeUsecase(oauth2)
-	jUsecase := usecase.NewJWKUsecase()
-	adapter.NewOauth2Handler(e, aUsecase, tUsecase, iUsecase, jUsecase, rUsecase)
+	// oauth2
+	oau := ou.NewAuthorization(oauth2)
+	otu := ou.NewTokenUsecase(oauth2)
+	oiu := ou.NewIntrospectUsecase(oauth2)
+	oru := ou.NewRevokeUsecase(oauth2)
+	oju := ou.NewJWKUsecase()
+	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru)
 
-	e.GET("/", client.IndexHandler)
-	e.GET("/callback", client.CallbackHandler)
-	e.GET("/userinfo", client.UserInfoHandler)
+	// common
+	wlu := cu.NewWebauthnLoginUsecase(*webAuthn)
+	ca.NewCommonHandler(e, wlu)
 
+	// resource server
 	uu := ru.UserinfoUsecase{}
 	wu := ru.NewWebauthnUsecase(*webAuthn)
 	ra.NewResourceServerHandler(e, uu, wu)
