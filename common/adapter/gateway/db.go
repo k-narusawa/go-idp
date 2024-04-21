@@ -14,7 +14,6 @@ func DbInit() {
 		panic("failed to connect database")
 	}
 
-	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Client{})
 	db.AutoMigrate(&models.IDSession{})
 	db.AutoMigrate(&models.AuthorizationCode{})
@@ -22,10 +21,11 @@ func DbInit() {
 	db.AutoMigrate(&models.RefreshToken{})
 	db.AutoMigrate(&models.PKCE{})
 
+	db.AutoMigrate(&cm.User{})
 	db.AutoMigrate(&cm.WebauthnUser{}, &cm.WebauthnCredential{})
 	db.AutoMigrate(&cm.WebauthnSessionData{})
 
-	testUser := models.NewUser("test@example.com", "!Password0")
+	testUser := cm.NewUser("test@example.com", "!Password0")
 	db.Create(&testUser)
 	db.Create(&models.Client{
 		ID:            "my-client",

@@ -34,7 +34,7 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 			tx.Rollback()
 			return result.Error
 		}
-		user = *cm.NewUser(ir.Sub, "Go-IdP")
+		user = *cm.NewWebauthnUser(ir.Sub, "Go-IdP")
 		result = tx.Create(&user)
 		if result.Error != nil {
 			tx.Rollback()
@@ -71,7 +71,7 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 	db := gateway.Connect()
 	tx := db.Begin()
 
-	user := cm.NewUser(ir.Sub, "Go-IdP")
+	user := cm.NewWebauthnUser(ir.Sub, "Go-IdP")
 
 	wsd := cm.WebauthnSessionData{}
 	result := tx.Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)

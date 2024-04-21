@@ -3,6 +3,7 @@ package usecase
 import (
 	"idp/authorization/domain/models"
 	"idp/common/adapter/gateway"
+	cm "idp/common/domain/models"
 	"log"
 	"net/http"
 
@@ -62,7 +63,7 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		p := req.PostForm.Get("password")
 
 		db := gateway.Connect()
-		var user models.User
+		var user cm.User
 		res := db.Where("username=?", un).First(&user)
 		if res.Error != nil {
 			log.Printf("Error occurred in GetClient: %+v", res.Error)

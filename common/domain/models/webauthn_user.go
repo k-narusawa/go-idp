@@ -15,7 +15,7 @@ type WebauthnUser struct {
 	Credentials []WebauthnCredential `gorm:"foreignKey:ID;references:ID"`
 }
 
-func NewUser(name string, displayName string) *WebauthnUser {
+func NewWebauthnUser(name string, displayName string) *WebauthnUser {
 	user := &WebauthnUser{}
 	user.ID = name
 	user.Name = name

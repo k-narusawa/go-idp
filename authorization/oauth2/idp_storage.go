@@ -15,7 +15,6 @@ import (
 
 type IdpStorage struct {
 	Clients            []models.Client
-	Users              []models.User
 	IDSessions         []models.IDSession
 	AuthorizationCodes []models.AuthorizationCode
 	AccessTokens       []models.AccessToken
