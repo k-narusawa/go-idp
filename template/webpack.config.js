@@ -1,4 +1,5 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require("path");
 
 module.exports = {
@@ -23,6 +24,9 @@ module.exports = {
       template: "src/error.html", // 使用する HTML テンプレート
       chunks: ["error"], // エラーページ用のチャンクのみを含める
     }),
+    new MiniCssExtractPlugin({
+      filename: "styles.css",
+    }),
   ],
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
@@ -33,6 +37,10 @@ module.exports = {
         test: /\.tsx?$/,
         use: "babel-loader",
         exclude: /node_modules/,
+      },
+      {
+        test: /\.css$/,
+        use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
       },
     ],
   },
