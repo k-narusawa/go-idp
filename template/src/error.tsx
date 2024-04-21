@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-const App = () => {
+const ErrorPage = () => {
   return (
     <>
       <h1>Error</h1>
@@ -12,4 +12,4 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById("app"));
+ReactDOM.render(<ErrorPage />, document.getElementById("app"));

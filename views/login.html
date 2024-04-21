@@ -1,25 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>Identity Provider</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Go-IdP Login</title>
+    <script defer src="/static/js/login.bundle.js"></script>
   </head>
   <body>
-  <div class="login-container">
-    <h1>ログイン</h1>
-    <form method="post">
-      <input type="hidden" name="scopes" value="openid" />
-      <input type="hidden" name="scopes" value="offline" />
-      <div class="form-control">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" value="test@example.com">
-      </div>
-      <div class="form-control">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" value="!Password0">
-      </div>
-      <button type="submit">ログイン</button>
-    </form>
-  </div>
-</body>
+    <div id="app"></div>
+  </body>
 </html>
