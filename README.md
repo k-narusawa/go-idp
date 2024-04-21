@@ -1,18 +1,32 @@
 # go-idp
 
 ## トークンの払い出し(authorization_code)
-1. `http://localhost:3846/oauth2/auth?client_id=my-client&redirect_uri=http://localhost:3846/callback&state=64aa6f2d-52d1-ec96-04b7-832f8720e7a7&response_type=code`にアクセス
 
-2. フォームに以下を入力
-```
-username: test@example.com
-password: password
+1. go のアプリケーションを起動
+
+```shell
+go run server.go
 ```
 
-3. トークンが返却される
+2. sp フォルダに移動
+
+```shell
+cd sp
+npm install
+```
+
+3. next を起動
+
+```shell
+npm run dev
+```
+
+4. `localhost:3000`にアクセスしてログインを行う
 
 ## トークンの払い出し(client_credentials)
+
 1. 以下のコマンドを実行
+
 ```shell
 curl --location 'http://localhost:3846/oauth2/token' \
 --header 'Content-Type: application/x-www-form-urlencoded' \
@@ -22,6 +36,7 @@ curl --location 'http://localhost:3846/oauth2/token' \
 ```
 
 2. 返却されたレスポンスを利用して有効性確認
+
 ```shell
 curl --location 'http://localhost:3846/oauth2/introspect' \
 --header 'Content-Type: application/x-www-form-urlencoded' \
