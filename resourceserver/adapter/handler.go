@@ -18,12 +18,12 @@ func NewResourceServerHandler(e *echo.Echo, uu usecase.UserinfoUsecase, wu useca
 		wu: wu,
 	}
 
-	rs := e.Group("/api/v1/users")
+	rs := e.Group("/api/v1/resources")
 	rs.Use(middleware.TokenAuthMiddleware())
 
-	rs.GET("/userinfo", handler.uu.GetUserinfo)
-	rs.GET("/webauthn/list", handler.wu.Get)
-	rs.GET("/webauthn", handler.wu.Start)
-	rs.POST("/webauthn", handler.wu.Finish)
-	rs.DELETE("/webauthn", handler.wu.Delete)
+	rs.GET("/users/userinfo", handler.uu.GetUserinfo)
+	rs.GET("/users/webauthn/list", handler.wu.Get)
+	rs.GET("/users/webauthn", handler.wu.Start)
+	rs.POST("/users/webauthn", handler.wu.Finish)
+	rs.DELETE("/users/webauthn", handler.wu.Delete)
 }

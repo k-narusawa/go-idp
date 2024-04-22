@@ -16,7 +16,7 @@ export default async function handler(
 
   if (req.method === "GET") {
     const apiResponse = await axios
-      .get(`${process.env.IDP_URL}/api/v1/users/webauthn`, {
+      .get(`${process.env.IDP_URL}/api/v1/resources/users/webauthn`, {
         headers: {
           Authorization: `Bearer ${session.accessToken}`,
         },
@@ -36,14 +36,18 @@ export default async function handler(
     return;
   } else if (req.method === "POST") {
     const apiResponse = await axios
-      .post(`${process.env.IDP_URL}/api/v1/users/webauthn`, req.body, {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-        params: {
-          challenge: req.query.challenge,
-        },
-      })
+      .post(
+        `${process.env.IDP_URL}/api/v1/resources/users/webauthn`,
+        req.body,
+        {
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+          params: {
+            challenge: req.query.challenge,
+          },
+        }
+      )
       .then((response) => response.data)
       .catch((error) => {
         console.error(error);
