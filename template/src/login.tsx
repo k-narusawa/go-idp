@@ -6,6 +6,7 @@ import "./styles.css";
 import { Button } from "./components/Button";
 import { Card } from "./components/Card";
 import { Input } from "./components/Input";
+import { HorizontalLine } from "./components/HorizontalLine";
 
 const LoginPage = () => {
   type Inputs = {
@@ -53,6 +54,23 @@ const LoginPage = () => {
     }
   };
 
+  const onWebauthn = async () => {
+    const res = await axios
+      .get("/api/v1/webauthn/login/start")
+      .then((response) => {
+        return response.data;
+      })
+      .catch((error) => {
+        console.error(error);
+        return null;
+      });
+
+    if (!res) {
+      console.error("WebAuthn login failed");
+      return;
+    }
+  };
+
   return (
     <>
       <div className="p-4">
@@ -86,12 +104,23 @@ const LoginPage = () => {
                   }}
                 />
               </div>
-              <div className="pt-4 px-12">
+              <div className="p-4 px-12">
                 <Button type="submit" variant="primary" disabled={false}>
                   ログイン
                 </Button>
               </div>
             </form>
+            <HorizontalLine />
+            <div className="pt-4 px-12">
+              <Button
+                type="button"
+                variant="primary"
+                disabled={false}
+                onClick={onWebauthn}
+              >
+                生体認証でログイン
+              </Button>
+            </div>
           </div>
         </Card>
       </div>

@@ -25,6 +25,7 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 
 	db := gateway.Connect()
 	tx := db.Begin()
+	defer tx.Rollback()
 
 	user := cm.WebauthnUser{}
 	result := tx.Where("name = ?", ir.Sub).First(&user)
