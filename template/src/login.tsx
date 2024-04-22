@@ -7,6 +7,7 @@ import { Button } from "./components/Button";
 import { Card } from "./components/Card";
 import { Input } from "./components/Input";
 import { HorizontalLine } from "./components/HorizontalLine";
+import { get } from "@github/webauthn-json";
 
 const LoginPage = () => {
   type Inputs = {
@@ -55,7 +56,7 @@ const LoginPage = () => {
   };
 
   const onWebauthn = async () => {
-    const res = await axios
+    const options = await axios
       .get("/api/v1/webauthn/login/start")
       .then((response) => {
         return response.data;
@@ -65,10 +66,12 @@ const LoginPage = () => {
         return null;
       });
 
-    if (!res) {
+    if (!options) {
       console.error("WebAuthn login failed");
       return;
     }
+
+    const credentials = await get(options);
   };
 
   return (

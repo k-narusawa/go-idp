@@ -134,3 +134,31 @@ func (w *WebauthnUsecase) Get(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, cred)
 }
+
+func (w *WebauthnUsecase) Delete(c echo.Context) error {
+	ir := c.Get(("ir")).(models.IntrospectResponse)
+
+	db := gateway.Connect()
+	tx := db.Begin()
+	defer tx.Rollback()
+
+	wu := cm.WebauthnUser{}
+	result := tx.
+		Preload("Credentials").
+		Where("name = ?", ir.Sub).
+		First(&wu)
+	if result.Error != nil {
+		tx.Rollback()
+		return result.Error
+	}
+
+	result = tx.Delete(&wu.Credentials)
+	if result.Error != nil {
+		tx.Rollback()
+		return result.Error
+	}
+
+	tx.Commit()
+
+	return c.NoContent(http.StatusNoContent)
+}
