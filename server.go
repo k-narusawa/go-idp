@@ -12,6 +12,7 @@ import (
 	ra "idp/resourceserver/adapter"
 	ru "idp/resourceserver/usecase"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 
@@ -64,9 +65,10 @@ func main() {
 	oauth2 := oauth2.NewOauth2Provider(privateKey)
 
 	wconfig := &webauthn.Config{
-		RPDisplayName: "Go Webauthn",
+		RPDisplayName: "localhost",
 		RPID:          "localhost",
-		RPOrigins:     []string{"localhost", "http://localhost:3000"},
+		RPOrigins:     []string{"http://localhost:3000"},
+		// RPOrigins: []string{"http://localhost:3846"},
 	}
 
 	webAuthn, err := webauthn.New(wconfig)
@@ -75,6 +77,11 @@ func main() {
 	}
 
 	e.Static("/static", "static")
+
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:3000"},
+		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+	}))
 
 	// oauth2
 	oau := ou.NewAuthorization(oauth2)

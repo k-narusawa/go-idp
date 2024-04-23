@@ -12,7 +12,8 @@ import (
 type WebauthnCredential struct {
 	gorm.Model
 	CredID          int64  `gorm:"primaryKey"`
-	ID              string `gorm:"type:text;index"`
+	UserID          string `gorm:"type:varchar(36);not null;index"`
+	ID              []byte `gorm:"type:blob;index"`
 	PublicKey       []byte `gorm:"type:blob"`
 	AttestationType string `gorm:"type:text"`
 	Transport       string `gorm:"type:text"`
@@ -68,7 +69,7 @@ func FromWebauthnCredential(cred *webauthn.Credential) *WebauthnCredential {
 	}
 
 	return &WebauthnCredential{
-		ID:              string(cred.ID),
+		ID:              cred.ID,
 		PublicKey:       cred.PublicKey,
 		AttestationType: cred.AttestationType,
 		Transport:       strings.Join(transport, ","),

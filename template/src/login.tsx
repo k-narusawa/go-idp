@@ -7,7 +7,10 @@ import { Button } from "./components/Button";
 import { Card } from "./components/Card";
 import { Input } from "./components/Input";
 import { HorizontalLine } from "./components/HorizontalLine";
-import { get } from "@github/webauthn-json";
+import {
+  get,
+  parseRequestOptionsFromJSON,
+} from "@github/webauthn-json/browser-ponyfill";
 
 const LoginPage = () => {
   type Inputs = {
@@ -28,13 +31,19 @@ const LoginPage = () => {
   });
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    const queryParams = window.location.search;
+    var queryParams = window.location.search;
+    queryParams = queryParams + "&";
 
     const params = new URLSearchParams();
     params.append("username", data.username);
     params.append("password", data.password);
     params.append("scopes", "openid");
     params.append("scopes", "offline");
+
+    const body = {
+      username: data.username,
+      password: data.password,
+    };
 
     const res = await axios
       .post(`/oauth2/auth${queryParams}`, params, {
@@ -57,7 +66,7 @@ const LoginPage = () => {
 
   const onWebauthn = async () => {
     const options = await axios
-      .get("/api/v1/webauthn/login/start")
+      .get("/api/v1/webauthn/login")
       .then((response) => {
         return response.data;
       })
@@ -71,7 +80,13 @@ const LoginPage = () => {
       return;
     }
 
-    const credentials = await get(options);
+    const parsedOptions = parseRequestOptionsFromJSON({
+      publicKey: options.publicKey,
+    });
+
+    console.log(parsedOptions);
+
+    const credentials = await get(parsedOptions);
   };
 
   return (
@@ -121,7 +136,7 @@ const LoginPage = () => {
                 disabled={false}
                 onClick={onWebauthn}
               >
-                生体認証でログイン
+                生体認証ログイン
               </Button>
             </div>
           </div>
@@ -130,5 +145,12 @@ const LoginPage = () => {
     </>
   );
 };
+
+function bufferDecode(value: string) {
+  return Uint8Array.from(
+    atob(value.replace(/-/g, "+").replace(/_/g, "/")),
+    (c) => c.charCodeAt(0)
+  );
+}
 
 ReactDOM.render(<LoginPage />, document.getElementById("app"));

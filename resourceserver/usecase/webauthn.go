@@ -27,27 +27,40 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	user := cm.WebauthnUser{}
-	result := tx.Where("name = ?", ir.Sub).First(&user)
+	u := cm.User{}
+	result := tx.
+		Where("user_id = ?", ir.Sub).
+		First(&u)
+	if result.Error != nil {
+		tx.Rollback()
+		return result.Error
+	}
+
+	wu := cm.WebauthnUser{}
+	result = tx.Where("name = ?", ir.Sub).First(&wu)
 
 	if result.Error != nil {
 		if result.Error.Error() != "record not found" {
 			tx.Rollback()
 			return result.Error
 		}
-		user = *cm.NewWebauthnUser(ir.Sub, "Go-IdP")
-		result = tx.Create(&user)
+		wu = *cm.NewWebauthnUser(ir.Sub, u.Username)
+		result = tx.Create(&wu)
 		if result.Error != nil {
 			tx.Rollback()
 			return result.Error
 		}
 	}
 
-	registerOptions := func(credCreationOpts *protocol.PublicKeyCredentialCreationOptions) {
-		credCreationOpts.CredentialExcludeList = user.CredentialExcludeList()
+	authSelect := protocol.AuthenticatorSelection{
+		// AuthenticatorAttachment: protocol.AuthenticatorAttachment("cross-platform"),
+		RequireResidentKey: protocol.ResidentKeyNotRequired(),
+		UserVerification:   protocol.VerificationRequired,
 	}
+	conveyancePref := protocol.PreferNoAttestation
 
-	options, sd, err := w.webauthn.BeginRegistration(user, registerOptions)
+	options, sd, err := w.webauthn.BeginRegistration(wu, webauthn.WithAuthenticatorSelection(authSelect), webauthn.WithConveyancePreference(conveyancePref))
+
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -71,11 +84,19 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 
 	db := gateway.Connect()
 	tx := db.Begin()
+	defer tx.Rollback()
 
-	user := cm.NewWebauthnUser(ir.Sub, "Go-IdP")
+	u := cm.User{}
+	result := tx.
+		Where("user_id = ?", ir.Sub).
+		First(&u)
+	if result.Error != nil {
+		tx.Rollback()
+		return result.Error
+	}
 
 	wsd := cm.WebauthnSessionData{}
-	result := tx.Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
+	result = tx.Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
 	if result.Error != nil {
 		tx.Rollback()
 		return result.Error
@@ -83,7 +104,8 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 
 	session := wsd.ToSessionData()
 
-	credential, err := w.webauthn.FinishRegistration(user, *session, c.Request())
+	wu := cm.NewWebauthnUser(u.UserID, u.Username)
+	credential, err := w.webauthn.FinishRegistration(wu, *session, c.Request())
 	if err != nil {
 		return err
 	}
@@ -94,14 +116,14 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 		return result.Error
 	}
 
-	user.AddCredential(*credential)
+	wu.AddCredential(*credential)
 
-	result = tx.Create(&user.Credentials)
+	result = tx.Create(&wu.Credentials)
 	if result.Error != nil {
 		tx.Rollback()
 		return result.Error
 	}
-	result = tx.Create(&user)
+	result = tx.Create(&wu)
 	if result.Error != nil {
 		tx.Rollback()
 		return result.Error

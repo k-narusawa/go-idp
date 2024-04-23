@@ -16,5 +16,6 @@ func NewCommonHandler(e *echo.Echo, wl usecase.WebauthnLoginUsecase) {
 	}
 
 	cm := e.Group("api/v1")
-	cm.GET("/webauthn/login/start", handler.wl.Start)
+	cm.GET("/webauthn/login", handler.wl.Start)
+	cm.POST("/webauthn/login", handler.wl.Finish)
 }

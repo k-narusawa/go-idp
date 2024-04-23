@@ -1,16 +1,25 @@
 import { getSession, signIn, signOut } from "next-auth/react";
 import { GetServerSideProps } from "next";
 import { Session } from "next-auth";
-import { Button } from "@/components/button";
+import { Button } from "@/components/Button";
 import axios from "axios";
-import { create } from "@github/webauthn-json";
-import { parseCreationOptionsFromJSON } from "@github/webauthn-json/browser-ponyfill";
+import {
+  create,
+  get,
+  parseCreationOptionsFromJSON,
+  parseRequestOptionsFromJSON,
+} from "@github/webauthn-json/browser-ponyfill";
+import { Toast } from "@/components/Toast";
+import { useState } from "react";
 
 type Props = {
   session: Session | null;
 };
 
 const Home = ({ session }: Props) => {
+  const [success, setSuccess] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
+
   const onLogin = () => {
     signIn("my-client");
   };
@@ -20,7 +29,7 @@ const Home = ({ session }: Props) => {
   };
 
   const onPasskey = async () => {
-    const json = await axios
+    const options = await axios
       .get("/api/resources/webauthn")
       .then((response) => {
         return response.data;
@@ -30,23 +39,24 @@ const Home = ({ session }: Props) => {
         return null;
       });
 
-    if (!json) {
+    const challenge = options.publicKey.challenge;
+
+    if (!options) {
       return;
     }
 
-    try {
-      parseCreationOptionsFromJSON(json);
-    } catch (e) {
-      console.error(e);
-      return;
-    }
+    const parsedOptions = parseCreationOptionsFromJSON({
+      publicKey: options.publicKey,
+    });
 
-    const response = await create(json);
+    const response = await create(parsedOptions);
+
+    console.log(response.toJSON());
 
     await axios
-      .post("/api/resources/webauthn", response, {
+      .post("/api/resources/webauthn", response.toJSON(), {
         params: {
-          challenge: json.publicKey.challenge,
+          challenge: challenge,
         },
       })
       .then((response) => {
@@ -57,9 +67,60 @@ const Home = ({ session }: Props) => {
       });
   };
 
+  const onCheckPasskey = async () => {
+    var options = await axios
+      .get("http://localhost:3846/api/v1/webauthn/login")
+      .then((response) => {
+        return response.data;
+      })
+      .catch((error) => {
+        console.error(error);
+        return null;
+      });
+
+    if (!options) {
+      console.error("WebAuthn login failed");
+      return;
+    }
+
+    const parsedOptions = parseRequestOptionsFromJSON({
+      publicKey: options.publicKey,
+    });
+
+    const challenge = options.publicKey.challenge;
+    const response = await get(parsedOptions);
+
+    await axios
+      .post(`http://localhost:3846/api/v1/webauthn/login`, response.toJSON(), {
+        params: {
+          challenge: challenge,
+        },
+      })
+      .then((response) => {
+        setSuccess(true);
+      })
+      .catch((error) => {
+        setError(true);
+      });
+  };
+
   if (session) {
     return (
       <>
+        {success && (
+          <Toast
+            message="パスキーログイン成功"
+            type="success"
+            onClose={() => setSuccess(false)}
+          />
+        )}
+        {error && (
+          <Toast
+            message="パスキーログイン失敗"
+            type="danger"
+            onClose={() => setError(false)}
+          />
+        )}
         <div className="p-4 overflow-auto">
           <span className="text-2xl font-bold mb-4">TOP</span>
           <table className="w-full table-auto">
@@ -102,7 +163,19 @@ const Home = ({ session }: Props) => {
                 size="default"
                 disabled={false}
               >
-                passkey
+                パスキー登録
+              </Button>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <div className="p-4 w-full sm:w-48">
+              <Button
+                onClick={onCheckPasskey}
+                variant="primary"
+                size="default"
+                disabled={false}
+              >
+                パスキーログイン
               </Button>
             </div>
           </div>
@@ -152,5 +225,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   };
 };
+
+function bufferDecode(value: string) {
+  return Uint8Array.from(
+    atob(value.replace(/-/g, "+").replace(/_/g, "/")),
+    (c) => c.charCodeAt(0)
+  );
+}
 
 export default Home;

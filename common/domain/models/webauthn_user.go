@@ -12,15 +12,15 @@ type WebauthnUser struct {
 	ID          string               `gorm:"type:text"`
 	Name        string               `gorm:"varchar(255)"`
 	DisplayName string               `gorm:"varchar(255)"`
-	Credentials []WebauthnCredential `gorm:"foreignKey:ID;references:ID"`
+	Credentials []WebauthnCredential `gorm:"foreignKey:UserID;references:ID"`
 }
 
-func NewWebauthnUser(name string, displayName string) *WebauthnUser {
-	user := &WebauthnUser{}
-	user.ID = name
-	user.Name = name
-	user.DisplayName = displayName
-	return user
+func NewWebauthnUser(userId string, userName string) *WebauthnUser {
+	wu := &WebauthnUser{}
+	wu.ID = userId
+	wu.Name = userId
+	wu.DisplayName = userName
+	return wu
 }
 
 // WebAuthnID returns the user's ID

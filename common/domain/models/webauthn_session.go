@@ -22,7 +22,12 @@ type WebauthnSessionData struct {
 }
 
 func FromSessionData(sd *webauthn.SessionData) *WebauthnSessionData {
+	// sd.AllowedCredentialIDsという[][]byteを[]stringに変換
 	acIds := make([]string, len(sd.AllowedCredentialIDs))
+	for i := range sd.AllowedCredentialIDs {
+		acIds[i] = string(sd.AllowedCredentialIDs[i])
+	}
+
 	ej, err := json.Marshal(sd.Extensions)
 	if err != nil {
 		panic(err)
@@ -40,6 +45,9 @@ func FromSessionData(sd *webauthn.SessionData) *WebauthnSessionData {
 
 func (wsd *WebauthnSessionData) ToSessionData() *webauthn.SessionData {
 	allowedCredentialIDs := make([][]byte, len(strings.Split(wsd.AllowedCredentialIDs, ",")))
+	for i, id := range strings.Split(wsd.AllowedCredentialIDs, ",") {
+		allowedCredentialIDs[i] = []byte(id)
+	}
 	uv := protocol.UserVerificationRequirement(wsd.UserVerification)
 	var ex map[string]interface{}
 	if err := json.Unmarshal([]byte(wsd.Extensions), &ex); err != nil {
