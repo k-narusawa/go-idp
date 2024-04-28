@@ -26,8 +26,8 @@ func DbInit() {
 	db.AutoMigrate(&cm.WebauthnSessionData{})
 
 	testUser := cm.NewUser("test@example.com", "!Password0")
-	db.Create(&testUser)
-	db.Create(&models.Client{
+	db.Save(&testUser)
+	db.Save(&models.Client{
 		ID:            "my-client",
 		Secret:        []byte(`$2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO`), // = "foobar"
 		RedirectURIs:  "http://localhost:3000/api/auth/callback/my-client",

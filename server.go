@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"html/template"
 	oa "idp/authorization/adapter"
+	"idp/authorization/domain/models"
 	"idp/authorization/oauth2"
 	ou "idp/authorization/usecase"
 	ca "idp/common/adapter"
@@ -53,6 +55,7 @@ func main() {
 
 	e.Use(middleware.Recover())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
+	gob.Register(&models.IDSession{})
 	e.Renderer = &TemplateRenderer{
 		templates: template.Must(template.ParseGlob("views/*.html")),
 	}

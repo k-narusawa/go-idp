@@ -1,4 +1,5 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
+import NextCors from "nextjs-cors";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -70,6 +71,7 @@ export const authOptions: NextAuthOptions = {
   //     options: { sameSite: "lax", path: "/", secure: false },
   //   },
   // },
+  // debug: true,
 };
 
 export default NextAuth(authOptions);

@@ -19,8 +19,6 @@ const LoginPage = () => {
   };
 
   const {
-    register,
-    handleSubmit,
     control,
     formState: { errors },
   } = useForm<Inputs>({
@@ -29,40 +27,6 @@ const LoginPage = () => {
       password: "!Password0",
     },
   });
-
-  const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    var queryParams = window.location.search;
-    queryParams = queryParams + "&";
-
-    const params = new URLSearchParams();
-    params.append("username", data.username);
-    params.append("password", data.password);
-    params.append("scopes", "openid");
-    params.append("scopes", "offline");
-
-    const body = {
-      username: data.username,
-      password: data.password,
-    };
-
-    const res = await axios
-      .post(`/oauth2/auth${queryParams}`, params, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        return response.data;
-      })
-      .catch((error) => {
-        console.error(error);
-        return null;
-      });
-
-    if (res) {
-      window.location.href = res.redirect_to;
-    } else {
-      console.error("Login failed");
-    }
-  };
 
   const onWebauthn = async () => {
     const options = await axios
@@ -97,7 +61,9 @@ const LoginPage = () => {
             <div className="p-4 flex justify-center text-xl font-semi-bold">
               ログイン
             </div>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form method="post">
+              <input type="hidden" name="scopes" value="openid" />
+              <input type="hidden" name="scopes" value="offline" />
               <div className="p-4">
                 <label>ログインID</label>
                 <Input
@@ -105,9 +71,6 @@ const LoginPage = () => {
                   name="username"
                   placeholder="test@example.com"
                   control={control}
-                  rules={{
-                    required: "メールアドレスの入力は必須です",
-                  }}
                 />
               </div>
               <div className="p-4">
@@ -117,9 +80,6 @@ const LoginPage = () => {
                   name="password"
                   placeholder="********"
                   control={control}
-                  rules={{
-                    required: "パスワードの入力は必須です",
-                  }}
                 />
               </div>
               <div className="p-4 px-12">

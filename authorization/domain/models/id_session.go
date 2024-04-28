@@ -9,11 +9,9 @@ import (
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
-	"gorm.io/gorm"
 )
 
 type IDSession struct {
-	gorm.Model
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
 	ClientID          string    `gorm:"type:varchar(255);not null"`
 	Client            Client    `gorm:"foreignKey:ClientID"`
@@ -156,4 +154,17 @@ func (is *IDSession) ToRequester() fosite.Requester {
 		GrantedAudience:   is.GrantedAudience,
 		SessionData:       is.SessionData,
 	}
+}
+
+func (is *IDSession) ToAuthorizeRequest() fosite.AuthorizeRequester {
+	ar := fosite.NewAuthorizeRequest()
+	ar.Form = is.GetRequestForm()
+	ar.RequestedAt = is.GetRequestedAt()
+	ar.RequestedScope = is.GetRequestedScopes()
+	ar.GrantedAudience = is.GetGrantedAudience()
+	ar.GrantedScope = is.GetGrantedScopes()
+	ar.Session = is.GetSession()
+	ar.ID = is.GetID()
+
+	return ar
 }
