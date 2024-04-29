@@ -4,8 +4,7 @@ import (
 	"idp/authorization/domain/models"
 	"idp/authorization/domain/repository"
 	"idp/authorization/oauth2"
-	"idp/common/adapter/gateway"
-	cm "idp/common/domain/models"
+	cr "idp/common/domain/repository"
 	"log"
 	"net/http"
 	"net/url"
@@ -17,12 +16,18 @@ import (
 type AuthorizationUsecase struct {
 	oauth2 fosite.OAuth2Provider
 	isr    repository.IIdSessionRepository
+	ur     cr.IUserRepository
 }
 
-func NewAuthorization(oauth2 fosite.OAuth2Provider, isr repository.IIdSessionRepository) AuthorizationUsecase {
+func NewAuthorization(
+	oauth2 fosite.OAuth2Provider,
+	isr repository.IIdSessionRepository,
+	ur cr.IUserRepository,
+) AuthorizationUsecase {
 	return AuthorizationUsecase{
 		oauth2: oauth2,
 		isr:    isr,
+		ur:     ur,
 	}
 }
 
@@ -66,11 +71,8 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		un := req.PostForm.Get("username")
 		p := req.PostForm.Get("password")
 
-		db := gateway.Connect()
-		var user cm.User
-		res := db.Where("username=?", un).First(&user)
-		if res.Error != nil {
-			log.Printf("Error occurred in GetClient: %+v", res.Error)
+		user, err := a.ur.FindByUsername(un)
+		if err != nil {
 			msg := map[string]interface{}{
 				"error": "Invalid username or password",
 			}

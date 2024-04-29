@@ -87,10 +87,13 @@ func main() {
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 	}))
 
+	db := gateway.Connect()
+
 	isr := infra.NewIdSessionRepository()
+	ur := gateway.NewUserRepository(db)
 
 	// oauth2
-	oau := ou.NewAuthorization(oauth2, isr)
+	oau := ou.NewAuthorization(oauth2, isr, ur)
 	otu := ou.NewTokenUsecase(oauth2)
 	oiu := ou.NewIntrospectUsecase(oauth2)
 	oru := ou.NewRevokeUsecase(oauth2)
