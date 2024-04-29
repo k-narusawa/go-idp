@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import axios from "axios";
 import ReactDOM from "react-dom";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -13,6 +13,13 @@ import {
 } from "@github/webauthn-json/browser-ponyfill";
 
 const LoginPage = () => {
+  const [error, setError] = React.useState<string | null>(null);
+  useEffect(() => {
+    if (window.hasOwnProperty("idpMessage") && (window as any).idpMessage) {
+      setError((window as any).idpMessage);
+    }
+  }, []);
+
   type Inputs = {
     username: string;
     password: string;
@@ -68,6 +75,7 @@ const LoginPage = () => {
             <div className="p-4 flex justify-center text-xl font-semi-bold">
               ログイン
             </div>
+            {error && <div className="p-4 text-red-500">{error}</div>}
             <form method="post">
               <input type="hidden" name="scopes" value="openid" />
               <input type="hidden" name="scopes" value="offline" />

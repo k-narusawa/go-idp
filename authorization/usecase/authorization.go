@@ -56,9 +56,7 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		if err != nil {
 			log.Printf("Error occurred in NewAuthorizeRequest: %+v", err)
 			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
-			msg := map[string]interface{}{
-				"error": "server error",
-			}
+			msg := "username or password is invalid."
 			return c.Render(http.StatusOK, "login.html", msg)
 		}
 
@@ -75,17 +73,13 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 
 		user, err := a.ur.FindByUsername(un)
 		if err != nil {
-			msg := map[string]interface{}{
-				"error": "Invalid username or password",
-			}
+			msg := "username or password is invalid."
 			return c.Render(http.StatusOK, "login.html", msg)
 		}
 
 		if err := user.Authenticate(p); err != nil {
 			log.Printf("Error occurred in Authenticate: %+v", err)
-			msg := map[string]interface{}{
-				"error": "Invalid username or password",
-			}
+			msg := "username or password is invalid."
 			return c.Render(http.StatusOK, "login.html", msg)
 		}
 
