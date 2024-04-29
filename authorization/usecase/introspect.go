@@ -1,8 +1,9 @@
 package usecase
 
 import (
-	"idp/authorization/domain/models"
 	"log"
+
+	"github.com/k-narusawa/go-idp/authorization/domain/models"
 
 	"github.com/labstack/echo/v4"
 	"github.com/ory/fosite"

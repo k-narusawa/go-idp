@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"idp/resourceserver/domain/models"
+	"github.com/k-narusawa/go-idp/resourceserver/domain/models"
 
 	"github.com/labstack/echo/v4"
 )

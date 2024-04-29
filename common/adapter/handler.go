@@ -1,7 +1,7 @@
 package adapter
 
 import (
-	"idp/common/usecase"
+	"github.com/k-narusawa/go-idp/common/usecase"
 
 	"github.com/labstack/echo/v4"
 )

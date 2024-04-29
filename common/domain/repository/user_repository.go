@@ -1,6 +1,6 @@
 package repository
 
-import "idp/common/domain/models"
+import "github.com/k-narusawa/go-idp/common/domain/models"
 
 type IUserRepository interface {
 	FindByUsername(username string) (*models.User, error)

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"idp/authorization/util"
+	"github.com/k-narusawa/go-idp/authorization/util"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

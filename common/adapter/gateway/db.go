@@ -1,8 +1,8 @@
 package gateway
 
 import (
-	"idp/authorization/domain/models"
-	cm "idp/common/domain/models"
+	"github.com/k-narusawa/go-idp/authorization/domain/models"
+	cm "github.com/k-narusawa/go-idp/common/domain/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

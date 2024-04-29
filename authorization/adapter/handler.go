@@ -1,7 +1,7 @@
 package adapter
 
 import (
-	"idp/authorization/usecase"
+	"github.com/k-narusawa/go-idp/authorization/usecase"
 
 	"github.com/labstack/echo/v4"
 )

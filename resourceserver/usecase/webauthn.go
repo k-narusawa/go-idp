@@ -1,11 +1,12 @@
 package usecase
 
 import (
-	"idp/common/adapter/gateway"
-	cm "idp/common/domain/models"
-	"idp/resourceserver/domain/models"
 	"log"
 	"net/http"
+
+	"github.com/k-narusawa/go-idp/common/adapter/gateway"
+	cm "github.com/k-narusawa/go-idp/common/domain/models"
+	"github.com/k-narusawa/go-idp/resourceserver/domain/models"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"

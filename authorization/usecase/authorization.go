@@ -1,13 +1,15 @@
 package usecase
 
 import (
-	"idp/authorization/domain/models"
-	"idp/authorization/domain/repository"
-	"idp/authorization/oauth2"
-	cr "idp/common/domain/repository"
 	"log"
 	"net/http"
 	"net/url"
+
+	"github.com/k-narusawa/go-idp/authorization/domain/repository"
+	"github.com/k-narusawa/go-idp/authorization/oauth2"
+	cr "github.com/k-narusawa/go-idp/common/domain/repository"
+
+	"github.com/k-narusawa/go-idp/authorization/domain/models"
 
 	"github.com/labstack/echo/v4"
 	"github.com/ory/fosite"

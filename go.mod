@@ -1,4 +1,4 @@
-module idp
+module github.com/k-narusawa/go-idp
 
 go 1.21
 

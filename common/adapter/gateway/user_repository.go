@@ -1,8 +1,9 @@
 package gateway
 
 import (
-	"idp/common/domain/models"
 	"log"
+
+	"github.com/k-narusawa/go-idp/common/domain/models"
 
 	"gorm.io/gorm"
 )

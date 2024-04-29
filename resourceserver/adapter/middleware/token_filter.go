@@ -2,12 +2,13 @@ package middleware
 
 import (
 	"encoding/json"
-	model "idp/resourceserver/domain/models"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
+
+	model "github.com/k-narusawa/go-idp/resourceserver/domain/models"
 
 	"github.com/labstack/echo/v4"
 )

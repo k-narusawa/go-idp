@@ -1,7 +1,7 @@
 package infra
 
 import (
-	"idp/authorization/domain/models"
+	"github.com/k-narusawa/go-idp/authorization/domain/models"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
