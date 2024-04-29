@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	oa "idp/authorization/adapter"
+	"idp/authorization/adapter/infra"
 	"idp/authorization/domain/models"
 	"idp/authorization/oauth2"
 	ou "idp/authorization/usecase"
@@ -86,8 +87,10 @@ func main() {
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 	}))
 
+	isr := infra.NewIdSessionRepository()
+
 	// oauth2
-	oau := ou.NewAuthorization(oauth2)
+	oau := ou.NewAuthorization(oauth2, isr)
 	otu := ou.NewTokenUsecase(oauth2)
 	oiu := ou.NewIntrospectUsecase(oauth2)
 	oru := ou.NewRevokeUsecase(oauth2)

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"idp/authorization/domain/models"
+	"idp/authorization/domain/repository"
 	"idp/authorization/oauth2"
 	"idp/common/adapter/gateway"
 	cm "idp/common/domain/models"
@@ -9,18 +10,20 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/ory/fosite"
 )
 
 type AuthorizationUsecase struct {
 	oauth2 fosite.OAuth2Provider
+	isr    repository.IIdSessionRepository
 }
 
-func NewAuthorization(oauth2 fosite.OAuth2Provider) AuthorizationUsecase {
-	return AuthorizationUsecase{oauth2: oauth2}
+func NewAuthorization(oauth2 fosite.OAuth2Provider, isr repository.IIdSessionRepository) AuthorizationUsecase {
+	return AuthorizationUsecase{
+		oauth2: oauth2,
+		isr:    isr,
+	}
 }
 
 func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
@@ -29,12 +32,15 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 
 	ctx := req.Context()
 
-	var idSession *models.IDSession
 	canSkip := false
 
-	sess, _ := session.Get("go-idp-session", c)
-	if sess.Values["id_session"] != nil {
-		idSession = sess.Values["id_session"].(*models.IDSession)
+	is, err := a.isr.GetIdSession(c)
+	if err != nil {
+		log.Printf("Error occurred in GetIdSession: %+v", err)
+		return err
+	}
+
+	if is != nil {
 		canSkip = true
 	}
 
@@ -92,14 +98,10 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		is := models.IDSessionOf(os.Subject, ar)
 		is.ClientID = req.PostForm.Get("client_id")
 
-		sess, _ := session.Get("go-idp-session", c)
-		sess.Options = &sessions.Options{
-			Path:     "/",
-			MaxAge:   86400 * 7,
-			HttpOnly: true,
+		if err := a.isr.CreateIdSession(c, *is); err != nil {
+			log.Printf("Error occurred in CreateIdSession: %+v", err)
+			return err
 		}
-		sess.Values["id_session"] = is
-		sess.Save(c.Request(), c.Response())
 
 		redirectTo := createRedirectTo(ar, response)
 
@@ -117,13 +119,13 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		redirectURI, _ := url.Parse(req.URL.Query().Get("redirect_uri"))
 		ar.RedirectURI = redirectURI
 
-		ar.Form = idSession.GetRequestForm()
-		ar.RequestedAt = idSession.GetRequestedAt()
-		ar.RequestedScope = idSession.GetRequestedScopes()
-		ar.GrantedAudience = idSession.GetGrantedAudience()
-		ar.GrantedScope = idSession.GetGrantedScopes()
-		ar.Session = idSession.GetSession()
-		ar.ID = idSession.GetID()
+		ar.Form = is.GetRequestForm()
+		ar.RequestedAt = is.GetRequestedAt()
+		ar.RequestedScope = is.GetRequestedScopes()
+		ar.GrantedAudience = is.GetGrantedAudience()
+		ar.GrantedScope = is.GetGrantedScopes()
+		ar.Session = is.GetSession()
+		ar.ID = is.GetID()
 
 		ar.ResponseTypes = req.URL.Query()["response_type"]
 		ar.State = req.URL.Query().Get("state")
@@ -139,7 +141,7 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		ar.Form.Add("code_challenge_method", req.URL.Query().Get("code_challenge_method"))
 
 		ar.SetResponseTypeHandled("code")
-		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, idSession.GetSession())
+		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, is.GetSession())
 		if err != nil {
 			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
 			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
