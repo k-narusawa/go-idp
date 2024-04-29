@@ -13,23 +13,27 @@ type Oauth2Handler struct {
 	ju usecase.JWKUsecase
 	ru usecase.RevokeUsecase
 	lu usecase.LogoutUsecase
+	wl usecase.WebauthnUsecase
 }
 
 func NewOauth2Handler(
-	e *echo.Echo, authUsecase usecase.AuthorizationUsecase,
-	tokenUsecase usecase.TokenUsecase,
-	introspectUsecase usecase.IntrospectUsecase,
-	jwkUsecase usecase.JWKUsecase,
-	revokeUsecase usecase.RevokeUsecase,
-	logoutUsecase usecase.LogoutUsecase,
+	e *echo.Echo,
+	au usecase.AuthorizationUsecase,
+	tu usecase.TokenUsecase,
+	iu usecase.IntrospectUsecase,
+	ju usecase.JWKUsecase,
+	ru usecase.RevokeUsecase,
+	lu usecase.LogoutUsecase,
+	wl usecase.WebauthnUsecase,
 ) {
 	handler := &Oauth2Handler{
-		au: authUsecase,
-		tu: tokenUsecase,
-		iu: introspectUsecase,
-		ju: jwkUsecase,
-		ru: revokeUsecase,
-		lu: logoutUsecase,
+		au: au,
+		tu: tu,
+		iu: iu,
+		ju: ju,
+		ru: ru,
+		lu: lu,
+		wl: wl,
 	}
 
 	e.GET("/oauth2/auth", handler.au.Invoke)
@@ -39,6 +43,9 @@ func NewOauth2Handler(
 	e.POST("/oauth2/revoke", handler.ru.Invoke)
 	e.GET("/oauth2/certs", handler.ju.Invoke)
 	e.GET("/oauth2/logout", handler.lu.Invoke)
+
+	e.GET("/webauthn/login", handler.wl.Start)
+	e.POST("/webauthn/login", handler.wl.Finish)
 
 	e.GET("/.well-known/openid-configuration", wellKnownOpenIDConfiguration)
 }

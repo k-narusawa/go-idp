@@ -56,6 +56,7 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 	gob.Register(&models.IDSession{})
+	gob.Register(&webauthn.SessionData{})
 	e.Renderer = &TemplateRenderer{
 		templates: template.Must(template.ParseGlob("views/*.html")),
 	}
@@ -70,8 +71,7 @@ func main() {
 	wconfig := &webauthn.Config{
 		RPDisplayName: "localhost",
 		RPID:          "localhost",
-		RPOrigins:     []string{"http://localhost:3000"},
-		// RPOrigins: []string{"http://localhost:3846"},
+		RPOrigins:     []string{"http://localhost:3000", "http://localhost:3846"},
 	}
 
 	webAuthn, err := webauthn.New(wconfig)
@@ -93,7 +93,8 @@ func main() {
 	oru := ou.NewRevokeUsecase(oauth2)
 	oju := ou.NewJWKUsecase()
 	olu := ou.NewLogoutUsecase(oauth2)
-	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu)
+	owu := ou.NewWebauthnUsecase(oauth2, *webAuthn)
+	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, owu)
 
 	// common
 	wlu := cu.NewWebauthnLoginUsecase(*webAuthn)

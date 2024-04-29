@@ -30,7 +30,7 @@ const LoginPage = () => {
 
   const onWebauthn = async () => {
     const options = await axios
-      .get("/api/v1/webauthn/login")
+      .get("/webauthn/login")
       .then((response) => {
         return response.data;
       })
@@ -38,6 +38,8 @@ const LoginPage = () => {
         console.error(error);
         return null;
       });
+
+    const challenge = options.publicKey.challenge;
 
     if (!options) {
       console.error("WebAuthn login failed");
@@ -48,9 +50,20 @@ const LoginPage = () => {
       publicKey: options.publicKey,
     });
 
-    console.log(parsedOptions);
-
     const credentials = await get(parsedOptions);
+
+    await axios
+      .post(`/webauthn/login`, credentials.toJSON(), {
+        params: {
+          challenge: challenge,
+        },
+      })
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   return (
