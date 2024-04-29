@@ -67,6 +67,47 @@ func (s *IdpStorage) SetClientAssertionJWT(_ context.Context, jti string, exp ti
 	return nil
 }
 
+func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) error {
+	db := gateway.Connect()
+
+	is := models.IDSessionOf(authorizeCode, requester)
+
+	result := db.Create(&is)
+
+	if result.Error != nil {
+		log.Printf("Error occurred in CreateOpenIDConnectSession: %+v", result.Error)
+		return result.Error
+	}
+
+	log.Printf("CreateOpenIDConnectSession Signature: %+v", authorizeCode)
+	return nil
+}
+
+func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
+	db := gateway.Connect()
+
+	var is models.IDSession
+	result := db.Where("signature=?", authorizeCode).First(&is)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			log.Printf("No record found for signature: %s", authorizeCode)
+			return nil, fosite.ErrNotFound
+		}
+		log.Printf("Error occurred in GetOpenIDConnectSession: %+v", result.Error)
+		return nil, result.Error
+	}
+
+	log.Printf("GetOpenIDConnectSession Signature: %+v", authorizeCode)
+	return is.ToRequester(), nil
+}
+
+func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode string) error {
+	// Deprecated
+	log.Printf("[Deprecated Operation] DeleteOpenIDConnectSession Signature: %+v", authorizeCode)
+	return nil
+}
+
 func (s *IdpStorage) CreateAccessTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
 	db := gateway.Connect()
 
@@ -237,46 +278,6 @@ func (s *IdpStorage) RevokeRefreshToken(ctx context.Context, requestID string) e
 	}
 
 	log.Printf("RevokeRefreshToken RequestID: %+v", requestID)
-	return nil
-}
-
-func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) error {
-	db := gateway.Connect()
-
-	is := models.IDSessionOf(authorizeCode, requester)
-
-	result := db.Create(&is)
-
-	if result.Error != nil {
-		log.Printf("Error occurred in CreateOpenIDConnectSession: %+v", result.Error)
-		return result.Error
-	}
-
-	log.Printf("CreateOpenIDConnectSession Signature: %+v", authorizeCode)
-	return nil
-}
-
-func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
-	db := gateway.Connect()
-
-	var is models.IDSession
-	result := db.Where("signature=?", authorizeCode).First(&is)
-
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			log.Printf("No record found for signature: %s", authorizeCode)
-			return nil, fosite.ErrNotFound
-		}
-		log.Printf("Error occurred in GetOpenIDConnectSession: %+v", result.Error)
-		return nil, result.Error
-	}
-
-	log.Printf("GetOpenIDConnectSession Signature: %+v", authorizeCode)
-	return is.ToRequester(), nil
-}
-
-func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode string) error {
-	// Deprecated
 	return nil
 }
 
