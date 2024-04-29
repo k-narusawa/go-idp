@@ -276,15 +276,7 @@ func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode st
 }
 
 func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode string) error {
-	// db := gateway.Connect()
-
-	// result := db.Where("signature=?", authorizeCode).Delete(&models.IDSession{})
-	// if result.Error != nil {
-	// 	log.Printf("Error occurred in DeleteOpenIDConnectSession: %+v", result.Error)
-	// 	return result.Error
-	// }
-
-	// log.Printf("DeleteOpenIDConnectSession Signature: %+v", authorizeCode)
+	// Deprecated
 	return nil
 }
 
