@@ -39,8 +39,6 @@ const LoginPage = () => {
         return null;
       });
 
-    const challenge = options.publicKey.challenge;
-
     if (!options) {
       console.error("WebAuthn login failed");
       return;
@@ -53,11 +51,7 @@ const LoginPage = () => {
     const credentials = await get(parsedOptions);
 
     await axios
-      .post(`/webauthn/login`, credentials.toJSON(), {
-        params: {
-          challenge: challenge,
-        },
-      })
+      .post(`/webauthn/login`, credentials.toJSON())
       .then((response) => {
         console.log(response);
       })

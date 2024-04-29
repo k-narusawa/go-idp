@@ -9,11 +9,9 @@ import (
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
-	"gorm.io/gorm"
 )
 
 type PKCE struct {
-	gorm.Model
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
 	ClientID          string    `gorm:"type:varchar(255);not null"`
 	Client            Client    `gorm:"foreignKey:ClientID"`

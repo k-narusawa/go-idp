@@ -4,11 +4,9 @@ import (
 	"strings"
 
 	"github.com/ory/fosite"
-	"gorm.io/gorm"
 )
 
 type Client struct {
-	gorm.Model
 	ID            string `gorm:"type:varchar(255);not null;unique" `
 	Secret        []byte `gorm:"type:blob"`
 	RedirectURIs  string `gorm:"type:text"`

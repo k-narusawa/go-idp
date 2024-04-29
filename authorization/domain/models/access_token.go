@@ -8,11 +8,9 @@ import (
 	"time"
 
 	"github.com/ory/fosite"
-	"gorm.io/gorm"
 )
 
 type AccessToken struct {
-	gorm.Model
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
 	ClientID          string    `gorm:"type:varchar(255);not null"`
 	Client            Client    `gorm:"foreignKey:ClientID"`
