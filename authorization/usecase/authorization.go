@@ -13,7 +13,6 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/ory/fosite"
-	"github.com/ory/fosite/handler/openid"
 )
 
 type AuthorizationUsecase struct {
@@ -30,7 +29,6 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 
 	ctx := req.Context()
 
-	var authSession *openid.DefaultSession
 	var idSession *models.IDSession
 	canSkip := false
 
@@ -81,17 +79,17 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 			return c.Render(http.StatusOK, "login.html", msg)
 		}
 
-		authSession = models.NewSession(user.UserID)
+		os := models.NewSession(user.UserID)
 
 		ar.SetResponseTypeHandled("code")
-		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, authSession)
+		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, os)
 		if err != nil {
 			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
 			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
 			return err
 		}
 
-		is := models.IDSessionOf(authSession.Subject, ar)
+		is := models.IDSessionOf(os.Subject, ar)
 		is.ClientID = req.PostForm.Get("client_id")
 
 		sess, _ := session.Get("go-idp-session", c)
