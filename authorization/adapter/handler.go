@@ -12,15 +12,24 @@ type Oauth2Handler struct {
 	iu usecase.IntrospectUsecase
 	ju usecase.JWKUsecase
 	ru usecase.RevokeUsecase
+	lu usecase.LogoutUsecase
 }
 
-func NewOauth2Handler(e *echo.Echo, authUsecase usecase.AuthorizationUsecase, tokenUsecase usecase.TokenUsecase, introspectUsecase usecase.IntrospectUsecase, jwkUsecase usecase.JWKUsecase, revokeUsecase usecase.RevokeUsecase) {
+func NewOauth2Handler(
+	e *echo.Echo, authUsecase usecase.AuthorizationUsecase,
+	tokenUsecase usecase.TokenUsecase,
+	introspectUsecase usecase.IntrospectUsecase,
+	jwkUsecase usecase.JWKUsecase,
+	revokeUsecase usecase.RevokeUsecase,
+	logoutUsecase usecase.LogoutUsecase,
+) {
 	handler := &Oauth2Handler{
 		au: authUsecase,
 		tu: tokenUsecase,
 		iu: introspectUsecase,
 		ju: jwkUsecase,
 		ru: revokeUsecase,
+		lu: logoutUsecase,
 	}
 
 	e.GET("/oauth2/auth", handler.au.Invoke)
@@ -29,6 +38,8 @@ func NewOauth2Handler(e *echo.Echo, authUsecase usecase.AuthorizationUsecase, to
 	e.POST("/oauth2/introspect", handler.iu.Invoke)
 	e.POST("/oauth2/revoke", handler.ru.Invoke)
 	e.GET("/oauth2/certs", handler.ju.Invoke)
+	e.GET("/oauth2/logout", handler.lu.Invoke)
+
 	e.GET("/.well-known/openid-configuration", wellKnownOpenIDConfiguration)
 }
 

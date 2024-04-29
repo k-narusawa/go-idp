@@ -25,7 +25,7 @@ const Home = ({ session }: Props) => {
   };
 
   const onLogout = () => {
-    signOut();
+    signOut({ callbackUrl: "signOut", redirect: true });
   };
 
   const onPasskey = async () => {
@@ -225,12 +225,5 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   };
 };
-
-function bufferDecode(value: string) {
-  return Uint8Array.from(
-    atob(value.replace(/-/g, "+").replace(/_/g, "/")),
-    (c) => c.charCodeAt(0)
-  );
-}
 
 export default Home;

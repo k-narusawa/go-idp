@@ -30,6 +30,20 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
+    redirect({ url, baseUrl }) {
+      if (url.startsWith(baseUrl)) return url;
+      if (url === "signOut" && process.env.IDP_LOGOUT_ENDPOINT) {
+        const logoutEndpointUrl = process.env.IDP_LOGOUT_ENDPOINT || "";
+        const params = new URLSearchParams({
+          post_logout_redirect_uri: `${process.env.NEXTAUTH_URL}`,
+          response_type: "code",
+        });
+        return `${logoutEndpointUrl}?${params.toString()}`;
+      }
+      if (url.startsWith("/")) return new URL(url, baseUrl).toString();
+      return baseUrl;
+    },
+
     async jwt({ token, user, account }) {
       token.accessToken ??= account?.access_token;
       token.refreshToken ??= account?.refresh_token;
