@@ -24,7 +24,6 @@ func (j *JWKUsecase) Invoke(c echo.Context) error {
 		"keys": []interface{}{keyset},
 	}
 	buf, _ := json.MarshalIndent(jwk, "", "  ")
-	// log.Printf("JWK: %s", buf)
 
 	return c.JSONBlob(200, buf)
 	// str := `{
