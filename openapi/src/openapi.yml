@@ -10,10 +10,10 @@ servers:
     description: ローカル環境
 
 paths:
-  /api/v1/webauthn/start:
-    $ref: './paths/resources/webauthn/start.yml'
+  /admin/clients:
+    $ref: "./paths/admin/clients.yml"
 
-components: 
+components:
   securitySchemes:
     Bearer:
-      $ref: './components/security/bearerAuth.yml'
+      $ref: "./components/security/bearerAuth.yml"

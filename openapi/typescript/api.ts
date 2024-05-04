@@ -26,211 +26,117 @@ import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerM
 /**
  * 
  * @export
- * @interface WebAuthnStartResponse
+ * @interface ClientRequest
  */
-export interface WebAuthnStartResponse {
+export interface ClientRequest {
     /**
-     * 
-     * @type {WebAuthnStartResponseRp}
-     * @memberof WebAuthnStartResponse
-     */
-    'rp': WebAuthnStartResponseRp;
-    /**
-     * 
-     * @type {WebAuthnStartResponseUser}
-     * @memberof WebAuthnStartResponse
-     */
-    'user': WebAuthnStartResponseUser;
-    /**
-     * 
+     * クライアントID
      * @type {string}
-     * @memberof WebAuthnStartResponse
+     * @memberof ClientRequest
      */
-    'challenge': string;
+    'client_id': string;
     /**
-     * 
-     * @type {Array<WebAuthnStartResponsePubKeyCredParamsInner>}
-     * @memberof WebAuthnStartResponse
-     */
-    'pubKeyCredParams': Array<WebAuthnStartResponsePubKeyCredParamsInner>;
-    /**
-     * 
-     * @type {number}
-     * @memberof WebAuthnStartResponse
-     */
-    'timeout': number;
-    /**
-     * 
-     * @type {Array<WebAuthnStartResponseExcludeCredentialsInner>}
-     * @memberof WebAuthnStartResponse
-     */
-    'excludeCredentials': Array<WebAuthnStartResponseExcludeCredentialsInner>;
-    /**
-     * 
-     * @type {WebAuthnStartResponseAuthenticatorSelection}
-     * @memberof WebAuthnStartResponse
-     */
-    'authenticatorSelection': WebAuthnStartResponseAuthenticatorSelection;
-    /**
-     * 
+     * クライアントシークレット
      * @type {string}
-     * @memberof WebAuthnStartResponse
+     * @memberof ClientRequest
      */
-    'attestation': string;
+    'client_secret': string;
     /**
      * 
-     * @type {WebAuthnStartResponseExtensions}
-     * @memberof WebAuthnStartResponse
+     * @type {Array<string>}
+     * @memberof ClientRequest
      */
-    'extensions'?: WebAuthnStartResponseExtensions;
-}
-/**
- * 
- * @export
- * @interface WebAuthnStartResponseAuthenticatorSelection
- */
-export interface WebAuthnStartResponseAuthenticatorSelection {
+    'redirect_uris': Array<string>;
     /**
      * 
-     * @type {string}
-     * @memberof WebAuthnStartResponseAuthenticatorSelection
+     * @type {Array<string>}
+     * @memberof ClientRequest
      */
-    'authenticatorAttachment'?: string;
+    'grant_types': Array<string>;
     /**
      * 
-     * @type {boolean}
-     * @memberof WebAuthnStartResponseAuthenticatorSelection
+     * @type {Array<string>}
+     * @memberof ClientRequest
      */
-    'requireResidentKey'?: boolean;
+    'response_types': Array<string>;
     /**
-     * 
-     * @type {string}
-     * @memberof WebAuthnStartResponseAuthenticatorSelection
+     * クライアントがサポートするスコープ - openid: OpenID Connectのスコープ - offline: リフレッシュトークンを取得するためのスコープ 
+     * @type {Array<string>}
+     * @memberof ClientRequest
      */
-    'userVerification'?: string;
-}
-/**
- * 
- * @export
- * @interface WebAuthnStartResponseExcludeCredentialsInner
- */
-export interface WebAuthnStartResponseExcludeCredentialsInner {
-    /**
-     * 
-     * @type {string}
-     * @memberof WebAuthnStartResponseExcludeCredentialsInner
-     */
-    'id'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof WebAuthnStartResponseExcludeCredentialsInner
-     */
-    'type'?: string;
-}
-/**
- * 
- * @export
- * @interface WebAuthnStartResponseExtensions
- */
-export interface WebAuthnStartResponseExtensions {
-    /**
-     * 
-     * @type {string}
-     * @memberof WebAuthnStartResponseExtensions
-     */
-    'appid'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof WebAuthnStartResponseExtensions
-     */
-    'authnSel'?: string;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof WebAuthnStartResponseExtensions
-     */
-    'exts'?: boolean;
-}
-/**
- * 
- * @export
- * @interface WebAuthnStartResponsePubKeyCredParamsInner
- */
-export interface WebAuthnStartResponsePubKeyCredParamsInner {
-    /**
-     * 
-     * @type {number}
-     * @memberof WebAuthnStartResponsePubKeyCredParamsInner
-     */
-    'alg'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof WebAuthnStartResponsePubKeyCredParamsInner
-     */
-    'type'?: string;
-}
-/**
- * 
- * @export
- * @interface WebAuthnStartResponseRp
- */
-export interface WebAuthnStartResponseRp {
-    /**
-     * 
-     * @type {string}
-     * @memberof WebAuthnStartResponseRp
-     */
-    'id'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof WebAuthnStartResponseRp
-     */
-    'name'?: string;
-}
-/**
- * 
- * @export
- * @interface WebAuthnStartResponseUser
- */
-export interface WebAuthnStartResponseUser {
-    /**
-     * 
-     * @type {string}
-     * @memberof WebAuthnStartResponseUser
-     */
-    'id'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof WebAuthnStartResponseUser
-     */
-    'name'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof WebAuthnStartResponseUser
-     */
-    'displayName'?: string;
+    'scopes': Array<ClientRequestScopesEnum>;
 }
 
+export const ClientRequestScopesEnum = {
+    Openid: 'openid',
+    Offline: 'offline'
+} as const;
+
+export type ClientRequestScopesEnum = typeof ClientRequestScopesEnum[keyof typeof ClientRequestScopesEnum];
+
 /**
- * WebauthnApi - axios parameter creator
+ * 
+ * @export
+ * @interface ClientResponse
+ */
+export interface ClientResponse {
+    /**
+     * クライアントID
+     * @type {string}
+     * @memberof ClientResponse
+     */
+    'client_id': string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ClientResponse
+     */
+    'redirect_uris': Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ClientResponse
+     */
+    'grant_types': Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ClientResponse
+     */
+    'response_types': Array<string>;
+    /**
+     * クライアントがサポートするスコープ - openid: OpenID Connectのスコープ - offline: リフレッシュトークンを取得するためのスコープ 
+     * @type {Array<string>}
+     * @memberof ClientResponse
+     */
+    'scopes': Array<ClientResponseScopesEnum>;
+}
+
+export const ClientResponseScopesEnum = {
+    Openid: 'openid',
+    Offline: 'offline'
+} as const;
+
+export type ClientResponseScopesEnum = typeof ClientResponseScopesEnum[keyof typeof ClientResponseScopesEnum];
+
+
+/**
+ * ClientApi - axios parameter creator
  * @export
  */
-export const WebauthnApiAxiosParamCreator = function (configuration?: Configuration) {
+export const ClientApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * WebAuthn 登録開始
-         * @summary 登録開始
+         * clientの登録を行います
+         * @summary client登録
+         * @param {ClientRequest} clientRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        webauthnStart: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/webauthn/start`;
+        adminClientsPost: async (clientRequest: ClientRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'clientRequest' is not null or undefined
+            assertParamExists('adminClientsPost', 'clientRequest', clientRequest)
+            const localVarPath = `/admin/clients`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -238,19 +144,18 @@ export const WebauthnApiAxiosParamCreator = function (configuration?: Configurat
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            // authentication Bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
 
     
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(clientRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -261,62 +166,65 @@ export const WebauthnApiAxiosParamCreator = function (configuration?: Configurat
 };
 
 /**
- * WebauthnApi - functional programming interface
+ * ClientApi - functional programming interface
  * @export
  */
-export const WebauthnApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = WebauthnApiAxiosParamCreator(configuration)
+export const ClientApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ClientApiAxiosParamCreator(configuration)
     return {
         /**
-         * WebAuthn 登録開始
-         * @summary 登録開始
+         * clientの登録を行います
+         * @summary client登録
+         * @param {ClientRequest} clientRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async webauthnStart(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WebAuthnStartResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.webauthnStart(options);
+        async adminClientsPost(clientRequest: ClientRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ClientResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminClientsPost(clientRequest, options);
             const index = configuration?.serverIndex ?? 0;
-            const operationBasePath = operationServerMap['WebauthnApi.webauthnStart']?.[index]?.url;
+            const operationBasePath = operationServerMap['ClientApi.adminClientsPost']?.[index]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, operationBasePath || basePath);
         },
     }
 };
 
 /**
- * WebauthnApi - factory interface
+ * ClientApi - factory interface
  * @export
  */
-export const WebauthnApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = WebauthnApiFp(configuration)
+export const ClientApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ClientApiFp(configuration)
     return {
         /**
-         * WebAuthn 登録開始
-         * @summary 登録開始
+         * clientの登録を行います
+         * @summary client登録
+         * @param {ClientRequest} clientRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        webauthnStart(options?: any): AxiosPromise<WebAuthnStartResponse> {
-            return localVarFp.webauthnStart(options).then((request) => request(axios, basePath));
+        adminClientsPost(clientRequest: ClientRequest, options?: any): AxiosPromise<ClientResponse> {
+            return localVarFp.adminClientsPost(clientRequest, options).then((request) => request(axios, basePath));
         },
     };
 };
 
 /**
- * WebauthnApi - object-oriented interface
+ * ClientApi - object-oriented interface
  * @export
- * @class WebauthnApi
+ * @class ClientApi
  * @extends {BaseAPI}
  */
-export class WebauthnApi extends BaseAPI {
+export class ClientApi extends BaseAPI {
     /**
-     * WebAuthn 登録開始
-     * @summary 登録開始
+     * clientの登録を行います
+     * @summary client登録
+     * @param {ClientRequest} clientRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof WebauthnApi
+     * @memberof ClientApi
      */
-    public webauthnStart(options?: RawAxiosRequestConfig) {
-        return WebauthnApiFp(this.configuration).webauthnStart(options).then((request) => request(this.axios, this.basePath));
+    public adminClientsPost(clientRequest: ClientRequest, options?: RawAxiosRequestConfig) {
+        return ClientApiFp(this.configuration).adminClientsPost(clientRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

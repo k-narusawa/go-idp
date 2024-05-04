@@ -1,0 +1,5 @@
+type: array
+items:
+  type: string
+  example: "https://example.com/callback"
+  description: リダイレクトURI

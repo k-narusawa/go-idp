@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-// WebauthnStart - 登録開始
-func (c *Container) WebauthnStart(ctx echo.Context) error {
+// AdminClientsPost - client登録
+func (c *Container) AdminClientsPost(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, models.HelloWorld {
 		Message: "Hello World",
 	})

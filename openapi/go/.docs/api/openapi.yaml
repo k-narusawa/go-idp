@@ -7,175 +7,213 @@ servers:
 - description: ローカル環境
   url: http://localhost:3846
 paths:
-  /api/v1/webauthn/start:
-    get:
-      description: WebAuthn 登録開始
-      operationId: webauthnStart
+  /admin/clients:
+    post:
+      description: clientの登録を行います
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRequest'
+        required: true
       responses:
-        "200":
+        "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WebAuthnStartResponse'
-          description: WebAuthn 登録開始
-      security:
-      - Bearer: []
-      summary: 登録開始
+                $ref: '#/components/schemas/ClientResponse'
+          description: Client登録成功
+      summary: client登録
       tags:
-      - webauthn
+      - client
 components:
   schemas:
-    WebAuthnStartResponse:
+    ClientRequest:
       example:
-        extensions:
-          appid: https://example.com
-          exts: true
-          authnSel: required
-        attestation: none
-        challenge: R_g3M58WQWSas4mjL2SVKg
-        authenticatorSelection:
-          authenticatorAttachment: cross-platform
-          userVerification: required
-          requireResidentKey: false
-        user:
-          displayName: John Doe
-          name: John Doe
-          id: "1234567890"
-        rp:
-          name: Example
-          id: example.com
-        timeout: 60000
-        excludeCredentials:
-        - id: "1234567890"
-          type: public-key
-        - id: "1234567890"
-          type: public-key
-        pubKeyCredParams:
-        - type: public-key
-          alg: -7
-        - type: public-key
-          alg: -7
+        grant_types:
+        - authorization_code
+        - refresh_token
+        - client_credentials
+        client_secret: "1234567890"
+        redirect_uris:
+        - https://example.com/callback
+        - https://example.com/callback
+        scopes:
+        - openid
+        - profile
+        client_id: "1234567890"
+        response_types:
+        - code
+        - token
+        - id_token token
       properties:
-        rp:
-          $ref: '#/components/schemas/WebAuthnStartResponse_rp'
-        user:
-          $ref: '#/components/schemas/WebAuthnStartResponse_user'
-        challenge:
-          example: R_g3M58WQWSas4mjL2SVKg
+        client_id:
+          description: クライアントID
+          example: "1234567890"
           type: string
-        pubKeyCredParams:
-          items:
-            $ref: '#/components/schemas/WebAuthnStartResponse_pubKeyCredParams_inner'
-          type: array
-        timeout:
-          example: 60000
-          type: integer
-        excludeCredentials:
-          items:
-            $ref: '#/components/schemas/WebAuthnStartResponse_excludeCredentials_inner'
-          type: array
-        authenticatorSelection:
-          $ref: '#/components/schemas/WebAuthnStartResponse_authenticatorSelection'
-        attestation:
-          example: none
+        client_secret:
+          description: クライアントシークレット
+          example: "1234567890"
           type: string
-        extensions:
-          $ref: '#/components/schemas/WebAuthnStartResponse_extensions'
+        redirect_uris:
+          items:
+            description: リダイレクトURI
+            example: https://example.com/callback
+            type: string
+          type: array
+        grant_types:
+          example:
+          - authorization_code
+          - refresh_token
+          - client_credentials
+          items:
+            description: クライアントがサポートする認可タイプ
+            type: string
+          type: array
+        response_types:
+          example:
+          - code
+          - token
+          - id_token token
+          items:
+            description: レスポンスタイプ
+            type: string
+          type: array
+        scopes:
+          description: |
+            クライアントがサポートするスコープ
+            - openid: OpenID Connectのスコープ
+            - offline: リフレッシュトークンを取得するためのスコープ
+          example:
+          - openid
+          - profile
+          items:
+            enum:
+            - openid
+            - offline
+            type: string
+          type: array
       required:
-      - attestation
-      - authenticatorSelection
-      - challenge
-      - excludeCredentials
-      - pubKeyCredParams
-      - rp
-      - timeout
-      - user
+      - client_id
+      - client_secret
+      - grant_types
+      - redirect_uris
+      - response_types
+      - scopes
       type: object
-    WebAuthnStartResponse_rp:
+    ClientResponse:
       example:
-        name: Example
-        id: example.com
+        grant_types:
+        - authorization_code
+        - refresh_token
+        - client_credentials
+        redirect_uris:
+        - https://example.com/callback
+        - https://example.com/callback
+        scopes:
+        - openid
+        - profile
+        client_id: "1234567890"
+        response_types:
+        - code
+        - token
+        - id_token token
       properties:
-        id:
-          example: example.com
-          type: string
-        name:
-          example: Example
-          type: string
-      type: object
-    WebAuthnStartResponse_user:
-      example:
-        displayName: John Doe
-        name: John Doe
-        id: "1234567890"
-      properties:
-        id:
+        client_id:
+          description: クライアントID
           example: "1234567890"
           type: string
-        name:
-          example: John Doe
-          type: string
-        displayName:
-          example: John Doe
-          type: string
+        redirect_uris:
+          items:
+            description: リダイレクトURI
+            example: https://example.com/callback
+            type: string
+          type: array
+        grant_types:
+          example:
+          - authorization_code
+          - refresh_token
+          - client_credentials
+          items:
+            description: クライアントがサポートする認可タイプ
+            type: string
+          type: array
+        response_types:
+          example:
+          - code
+          - token
+          - id_token token
+          items:
+            description: レスポンスタイプ
+            type: string
+          type: array
+        scopes:
+          description: |
+            クライアントがサポートするスコープ
+            - openid: OpenID Connectのスコープ
+            - offline: リフレッシュトークンを取得するためのスコープ
+          example:
+          - openid
+          - profile
+          items:
+            enum:
+            - openid
+            - offline
+            type: string
+          type: array
+      required:
+      - client_id
+      - grant_types
+      - redirect_uris
+      - response_types
+      - scopes
       type: object
-    WebAuthnStartResponse_pubKeyCredParams_inner:
+    client_id:
+      description: クライアントID
+      example: "1234567890"
+      type: string
+    client_secret:
+      description: クライアントシークレット
+      example: "1234567890"
+      type: string
+    redirect_uris:
+      items:
+        description: リダイレクトURI
+        example: https://example.com/callback
+        type: string
+      type: array
+    grant_types:
       example:
-        type: public-key
-        alg: -7
-      properties:
-        alg:
-          example: -7
-          format: int64
-          type: integer
-        type:
-          example: public-key
-          type: string
-      type: object
-    WebAuthnStartResponse_excludeCredentials_inner:
+      - authorization_code
+      - refresh_token
+      - client_credentials
+      items:
+        description: クライアントがサポートする認可タイプ
+        type: string
+      type: array
+    response_types:
       example:
-        id: "1234567890"
-        type: public-key
-      properties:
-        id:
-          example: "1234567890"
-          type: string
-        type:
-          example: public-key
-          type: string
-      type: object
-    WebAuthnStartResponse_authenticatorSelection:
+      - code
+      - token
+      - id_token token
+      items:
+        description: レスポンスタイプ
+        type: string
+      type: array
+    scopes:
+      description: |
+        クライアントがサポートするスコープ
+        - openid: OpenID Connectのスコープ
+        - offline: リフレッシュトークンを取得するためのスコープ
       example:
-        authenticatorAttachment: cross-platform
-        userVerification: required
-        requireResidentKey: false
-      properties:
-        authenticatorAttachment:
-          example: cross-platform
-          type: string
-        requireResidentKey:
-          example: false
-          type: boolean
-        userVerification:
-          example: required
-          type: string
-      type: object
-    WebAuthnStartResponse_extensions:
-      example:
-        appid: https://example.com
-        exts: true
-        authnSel: required
-      properties:
-        appid:
-          example: https://example.com
-          type: string
-        authnSel:
-          example: required
-          type: string
-        exts:
-          example: true
-          type: boolean
-      type: object
+      - openid
+      - profile
+      items:
+        enum:
+        - openid
+        - offline
+        type: string
+      type: array
   securitySchemes:
     Bearer:
       description: アクセストークンを設定します

@@ -17,8 +17,8 @@ func main() {
 	e.Use(middleware.Recover())
 
 
-	// WebauthnStart - 登録開始
-	e.GET("/api/v1/webauthn/start", c.WebauthnStart)
+	// AdminClientsPost - client登録
+	e.POST("/admin/clients", c.AdminClientsPost)
 
 
 	// Start server

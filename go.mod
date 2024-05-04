@@ -3,6 +3,7 @@ module github.com/k-narusawa/go-idp
 go 1.21
 
 require (
+	github.com/go-webauthn/webauthn v0.10.2
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.11.4
@@ -27,7 +28,6 @@ require (
 	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-webauthn/webauthn v0.10.2 // indirect
 	github.com/go-webauthn/x v0.1.9 // indirect
 	github.com/gobuffalo/pop/v6 v6.0.8 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect

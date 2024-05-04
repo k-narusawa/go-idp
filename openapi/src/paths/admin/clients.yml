@@ -1,0 +1,19 @@
+post:
+  operationId:
+  tags:
+    - client
+  summary: client登録
+  description: clientの登録を行います
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../components/schemas/request/ClientRequest.yml"
+  responses:
+    "201":
+      description: Client登録成功
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas/response/ClientResponse.yml"

@@ -1,0 +1,5 @@
+type: array
+items:
+  type: string
+  description: クライアントがサポートする認可タイプ
+example: ["authorization_code", "refresh_token", "client_credentials"]

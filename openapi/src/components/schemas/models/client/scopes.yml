@@ -1,0 +1,12 @@
+type: array
+description: |
+  クライアントがサポートするスコープ
+  - openid: OpenID Connectのスコープ
+  - offline: リフレッシュトークンを取得するためのスコープ
+items:
+  type: string
+  enum:
+    - openid
+    - offline
+  description:
+example: ["openid", "profile"]

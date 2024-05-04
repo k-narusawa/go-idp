@@ -1,0 +1,21 @@
+type: object
+required:
+  - client_id
+  - client_secret
+  - redirect_uris
+  - grant_types
+  - response_types
+  - scopes
+properties:
+  client_id:
+    $ref: "../models/client/client_id.yml"
+  client_secret:
+    $ref: "../models/client/client_secret.yml"
+  redirect_uris:
+    $ref: "../models/client/redirect_uris.yml"
+  grant_types:
+    $ref: "../models/client/grant_types.yml"
+  response_types:
+    $ref: "../models/client/response_types.yml"
+  scopes:
+    $ref: "../models/client/scopes.yml"
