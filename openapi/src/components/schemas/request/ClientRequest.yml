@@ -19,3 +19,7 @@ properties:
     $ref: "../models/client/response_types.yml"
   scopes:
     $ref: "../models/client/scopes.yml"
+  audience:
+    $ref: "../models/client/audience.yml"
+  public:
+    $ref: "../models/client/public.yml"

@@ -1,0 +1,4 @@
+type: boolean
+example: false
+description: |
+  ClientSecretを安全に管理できるかどうか

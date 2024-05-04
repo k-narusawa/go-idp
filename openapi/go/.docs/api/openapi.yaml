@@ -30,10 +30,12 @@ components:
   schemas:
     ClientRequest:
       example:
+        audience: "1234567890"
         grant_types:
         - authorization_code
         - refresh_token
         - client_credentials
+        public: false
         client_secret: "1234567890"
         redirect_uris:
         - https://example.com/callback
@@ -93,6 +95,16 @@ components:
             - offline
             type: string
           type: array
+        audience:
+          description: |
+            オーディエンス
+          example: "1234567890"
+          type: string
+        public:
+          description: |
+            ClientSecretを安全に管理できるかどうか
+          example: false
+          type: boolean
       required:
       - client_id
       - client_secret
@@ -103,10 +115,12 @@ components:
       type: object
     ClientResponse:
       example:
+        audience: "1234567890"
         grant_types:
         - authorization_code
         - refresh_token
         - client_credentials
+        public: false
         redirect_uris:
         - https://example.com/callback
         - https://example.com/callback
@@ -161,6 +175,16 @@ components:
             - offline
             type: string
           type: array
+        audience:
+          description: |
+            オーディエンス
+          example: "1234567890"
+          type: string
+        public:
+          description: |
+            ClientSecretを安全に管理できるかどうか
+          example: false
+          type: boolean
       required:
       - client_id
       - grant_types
@@ -214,6 +238,16 @@ components:
         - offline
         type: string
       type: array
+    audience:
+      description: |
+        オーディエンス
+      example: "1234567890"
+      type: string
+    public:
+      description: |
+        ClientSecretを安全に管理できるかどうか
+      example: false
+      type: boolean
   securitySchemes:
     Bearer:
       description: アクセストークンを設定します

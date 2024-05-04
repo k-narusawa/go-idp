@@ -3,6 +3,7 @@ package models
 import (
 	"strings"
 
+	"github.com/k-narusawa/go-idp/authorization/util"
 	"github.com/ory/fosite"
 )
 
@@ -73,5 +74,25 @@ func ClientOf(fc fosite.Client) Client {
 		Scopes:        c.Scopes,
 		Audience:      c.Audience,
 		Public:        c.Public,
+	}
+}
+
+func NewClient(
+	id string,
+	secret string,
+	redirectURIs, grantTypes, responseTypes, scopes []string,
+	audience string,
+	public bool,
+) *Client {
+	hashedSecret, _ := util.HashSecret(string(secret))
+	return &Client{
+		ID:            id,
+		Secret:        hashedSecret,
+		RedirectURIs:  strings.Join(redirectURIs, ","),
+		GrantTypes:    strings.Join(grantTypes, ","),
+		ResponseTypes: strings.Join(responseTypes, ","),
+		Scopes:        strings.Join(scopes, ","),
+		Audience:      audience,
+		Public:        public,
 	}
 }

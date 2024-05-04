@@ -65,6 +65,18 @@ export interface ClientRequest {
      * @memberof ClientRequest
      */
     'scopes': Array<ClientRequestScopesEnum>;
+    /**
+     * オーディエンス 
+     * @type {string}
+     * @memberof ClientRequest
+     */
+    'audience'?: string;
+    /**
+     * ClientSecretを安全に管理できるかどうか 
+     * @type {boolean}
+     * @memberof ClientRequest
+     */
+    'public'?: boolean;
 }
 
 export const ClientRequestScopesEnum = {
@@ -110,6 +122,18 @@ export interface ClientResponse {
      * @memberof ClientResponse
      */
     'scopes': Array<ClientResponseScopesEnum>;
+    /**
+     * オーディエンス 
+     * @type {string}
+     * @memberof ClientResponse
+     */
+    'audience'?: string;
+    /**
+     * ClientSecretを安全に管理できるかどうか 
+     * @type {boolean}
+     * @memberof ClientResponse
+     */
+    'public'?: boolean;
 }
 
 export const ClientResponseScopesEnum = {

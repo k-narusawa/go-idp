@@ -89,6 +89,7 @@ func main() {
 
 	isr := gateway.NewIdSessionRepository()
 	ur := gateway.NewUserRepository(db)
+	cr := gateway.NewClientRepository(db)
 
 	// oauth2
 	oau := ou.NewAuthorization(oauth2, isr, ur)
@@ -100,6 +101,10 @@ func main() {
 	owu := ou.NewWebauthnUsecase(oauth2, *webAuthn)
 	wlu := ou.NewWebauthnLoginUsecase(*webAuthn)
 	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, owu, wlu)
+
+	// client
+	cu := ou.NewClientUsecase(cr)
+	oa.NewClientHandler(e, cu)
 
 	// resource server
 	uu := ru.UserinfoUsecase{}
