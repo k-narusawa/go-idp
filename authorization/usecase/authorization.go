@@ -7,7 +7,6 @@ import (
 
 	"github.com/k-narusawa/go-idp/authorization/domain/repository"
 	"github.com/k-narusawa/go-idp/authorization/oauth2"
-	cr "github.com/k-narusawa/go-idp/common/domain/repository"
 
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
 
@@ -18,13 +17,13 @@ import (
 type AuthorizationUsecase struct {
 	oauth2 fosite.OAuth2Provider
 	isr    repository.IIdSessionRepository
-	ur     cr.IUserRepository
+	ur     repository.IUserRepository
 }
 
 func NewAuthorization(
 	oauth2 fosite.OAuth2Provider,
 	isr repository.IIdSessionRepository,
-	ur cr.IUserRepository,
+	ur repository.IUserRepository,
 ) AuthorizationUsecase {
 	return AuthorizationUsecase{
 		oauth2: oauth2,

@@ -2,7 +2,6 @@ package gateway
 
 import (
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
-	cm "github.com/k-narusawa/go-idp/common/domain/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -21,11 +20,11 @@ func DbInit() {
 	db.AutoMigrate(&models.RefreshToken{})
 	db.AutoMigrate(&models.PKCE{})
 
-	db.AutoMigrate(&cm.User{})
-	db.AutoMigrate(&cm.WebauthnUser{}, &cm.WebauthnCredential{})
-	db.AutoMigrate(&cm.WebauthnSessionData{})
+	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.WebauthnUser{}, &models.WebauthnCredential{})
+	db.AutoMigrate(&models.WebauthnSessionData{})
 
-	testUser := cm.NewUser("test@example.com", "!Password0")
+	testUser := models.NewUser("test@example.com", "!Password0")
 	db.Save(&testUser)
 	db.Save(&models.Client{
 		ID:            "my-client",

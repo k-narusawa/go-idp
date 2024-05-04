@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/k-narusawa/go-idp/common/adapter/gateway"
-	cm "github.com/k-narusawa/go-idp/common/domain/models"
+	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
+	am "github.com/k-narusawa/go-idp/authorization/domain/models"
 	"github.com/k-narusawa/go-idp/resourceserver/domain/models"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -28,7 +28,7 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	u := cm.User{}
+	u := am.User{}
 	result := tx.
 		Where("user_id = ?", ir.Sub).
 		First(&u)
@@ -37,7 +37,7 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 		return result.Error
 	}
 
-	wu := cm.WebauthnUser{}
+	wu := am.WebauthnUser{}
 	result = tx.Where("name = ?", ir.Sub).First(&wu)
 
 	if result.Error != nil {
@@ -45,7 +45,7 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 			tx.Rollback()
 			return result.Error
 		}
-		wu = *cm.NewWebauthnUser(ir.Sub, u.Username)
+		wu = *am.NewWebauthnUser(ir.Sub, u.Username)
 		result = tx.Create(&wu)
 		if result.Error != nil {
 			tx.Rollback()
@@ -67,7 +67,7 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 		return err
 	}
 
-	ws := cm.FromSessionData(sd)
+	ws := am.FromSessionData(sd)
 
 	result = tx.Create(&ws)
 	if result.Error != nil {
@@ -87,7 +87,7 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	u := cm.User{}
+	u := am.User{}
 	result := tx.
 		Where("user_id = ?", ir.Sub).
 		First(&u)
@@ -96,7 +96,7 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 		return result.Error
 	}
 
-	wsd := cm.WebauthnSessionData{}
+	wsd := am.WebauthnSessionData{}
 	result = tx.Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
 	if result.Error != nil {
 		tx.Rollback()
@@ -105,7 +105,7 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 
 	session := wsd.ToSessionData()
 
-	wu := cm.NewWebauthnUser(u.UserID, u.Username)
+	wu := am.NewWebauthnUser(u.UserID, u.Username)
 	credential, err := w.webauthn.FinishRegistration(wu, *session, c.Request())
 	if err != nil {
 		return err
@@ -141,7 +141,7 @@ func (w *WebauthnUsecase) Get(c echo.Context) error {
 	db := gateway.Connect()
 	tx := db.Begin()
 
-	wu := cm.WebauthnUser{}
+	wu := am.WebauthnUser{}
 	result := tx.
 		Preload("Credentials").
 		Where("name = ?", ir.Sub).
@@ -165,7 +165,7 @@ func (w *WebauthnUsecase) Delete(c echo.Context) error {
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	wu := cm.WebauthnUser{}
+	wu := am.WebauthnUser{}
 	result := tx.
 		Preload("Credentials").
 		Where("name = ?", ir.Sub).

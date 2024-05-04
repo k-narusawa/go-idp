@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
-	"github.com/k-narusawa/go-idp/common/adapter/gateway"
 
 	"github.com/ory/fosite"
 	"gorm.io/gorm"

@@ -1,4 +1,4 @@
-package infra
+package gateway
 
 import (
 	"github.com/k-narusawa/go-idp/authorization/domain/models"

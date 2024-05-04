@@ -3,8 +3,8 @@ package usecase
 import (
 	"log"
 
-	"github.com/k-narusawa/go-idp/common/adapter/gateway"
-	cm "github.com/k-narusawa/go-idp/common/domain/models"
+	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
+	"github.com/k-narusawa/go-idp/authorization/domain/models"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -25,7 +25,7 @@ func (w *WebauthnLoginUsecase) Start(c echo.Context) error {
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	u := cm.User{}
+	u := models.User{}
 	result := tx.
 		Where("username = ?", "test@example.com").
 		First(&u)
@@ -33,7 +33,7 @@ func (w *WebauthnLoginUsecase) Start(c echo.Context) error {
 		return result.Error
 	}
 
-	wu := cm.WebauthnUser{}
+	wu := models.WebauthnUser{}
 	result = tx.
 		Preload("Credentials").
 		Where("id = ?", u.UserID).
@@ -65,7 +65,7 @@ func (w *WebauthnLoginUsecase) Start(c echo.Context) error {
 		return err
 	}
 
-	ws := cm.FromSessionData(session)
+	ws := models.FromSessionData(session)
 
 	result = tx.Create(&ws)
 	if result.Error != nil {
@@ -83,7 +83,7 @@ func (w *WebauthnLoginUsecase) Finish(c echo.Context) error {
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	u := cm.User{}
+	u := models.User{}
 	result := tx.
 		Where("username = ?", "test@example.com").
 		First(&u)
@@ -91,7 +91,7 @@ func (w *WebauthnLoginUsecase) Finish(c echo.Context) error {
 		return result.Error
 	}
 
-	wsd := cm.WebauthnSessionData{}
+	wsd := models.WebauthnSessionData{}
 	result = tx.Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
 	if result.Error != nil {
 		tx.Rollback()
@@ -101,7 +101,7 @@ func (w *WebauthnLoginUsecase) Finish(c echo.Context) error {
 
 	session := wsd.ToSessionData()
 
-	wu := cm.WebauthnUser{}
+	wu := models.WebauthnUser{}
 	result = tx.
 		Preload("Credentials").
 		Where("id = ?", u.UserID).

@@ -10,13 +10,10 @@ import (
 	"strings"
 
 	oa "github.com/k-narusawa/go-idp/authorization/adapter"
-	"github.com/k-narusawa/go-idp/authorization/adapter/infra"
+	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
 	"github.com/k-narusawa/go-idp/authorization/oauth2"
 	ou "github.com/k-narusawa/go-idp/authorization/usecase"
-	ca "github.com/k-narusawa/go-idp/common/adapter"
-	"github.com/k-narusawa/go-idp/common/adapter/gateway"
-	cu "github.com/k-narusawa/go-idp/common/usecase"
 	ra "github.com/k-narusawa/go-idp/resourceserver/adapter"
 	ru "github.com/k-narusawa/go-idp/resourceserver/usecase"
 
@@ -90,7 +87,7 @@ func main() {
 
 	db := gateway.Connect()
 
-	isr := infra.NewIdSessionRepository()
+	isr := gateway.NewIdSessionRepository()
 	ur := gateway.NewUserRepository(db)
 
 	// oauth2
@@ -101,11 +98,8 @@ func main() {
 	oju := ou.NewJWKUsecase()
 	olu := ou.NewLogoutUsecase(oauth2)
 	owu := ou.NewWebauthnUsecase(oauth2, *webAuthn)
-	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, owu)
-
-	// common
-	wlu := cu.NewWebauthnLoginUsecase(*webAuthn)
-	ca.NewCommonHandler(e, wlu)
+	wlu := ou.NewWebauthnLoginUsecase(*webAuthn)
+	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, owu, wlu)
 
 	// resource server
 	uu := ru.UserinfoUsecase{}
