@@ -15,13 +15,13 @@ func NewSession(userId string) *openid.DefaultSession {
 
 	claims := &jwt.IDTokenClaims{
 		Issuer:      "go-idp",
-		Audience:    []string{"my-client"},
+		Audience:    []string{"go-idp"}, // FIXME: 動的に設定できるようにする
 		Subject:     userId,
 		IssuedAt:    time.Now(),
 		RequestedAt: time.Now(),
 		AuthTime:    time.Now(),
 	}
-	claims.Add("azp", "my-client")
+	claims.Add("azp", "go-idp")
 
 	return &openid.DefaultSession{
 		Claims:  claims,

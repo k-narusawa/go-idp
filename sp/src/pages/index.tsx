@@ -21,7 +21,7 @@ const Home = ({ session }: Props) => {
   const [error, setError] = useState<boolean>(false);
 
   const onLogin = () => {
-    signIn("my-client");
+    signIn("go-idp");
   };
 
   const onLogout = () => {

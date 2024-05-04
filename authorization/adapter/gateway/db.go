@@ -26,14 +26,6 @@ func DbInit() {
 
 	testUser := models.NewUser("test@example.com", "!Password0")
 	db.Save(&testUser)
-	db.Save(&models.Client{
-		ID:            "my-client",
-		Secret:        []byte(`$2a$10$IxMdI6d.LIRZPpSfEwNoeu4rY3FhDREsxFJXikcgdRRAStxUlsuEO`), // = "foobar"
-		RedirectURIs:  "http://localhost:3000/api/auth/callback/my-client",
-		ResponseTypes: "id_token,code,token,id_token token,code id_token,code token,code id_token token",
-		GrantTypes:    "refresh_token,authorization_code,client_credentials",
-		Scopes:        "openid,offline",
-	})
 }
 
 func Connect() *gorm.DB {
