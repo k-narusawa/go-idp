@@ -6,6 +6,7 @@ import (
 
 	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
+	"github.com/k-narusawa/go-idp/authorization/domain/repository"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -18,10 +19,19 @@ import (
 type WebauthnUsecase struct {
 	oauth2   fosite.OAuth2Provider
 	webauthn webauthn.WebAuthn
+	lssr     repository.ILoginSkipSessionRepository
 }
 
-func NewWebauthnUsecase(oauth2 fosite.OAuth2Provider, webauthn webauthn.WebAuthn) WebauthnUsecase {
-	return WebauthnUsecase{oauth2: oauth2, webauthn: webauthn}
+func NewWebauthnUsecase(
+	oauth2 fosite.OAuth2Provider,
+	webauthn webauthn.WebAuthn,
+	lssr repository.ILoginSkipSessionRepository,
+) WebauthnUsecase {
+	return WebauthnUsecase{
+		oauth2:   oauth2,
+		webauthn: webauthn,
+		lssr:     lssr,
+	}
 }
 
 func (w *WebauthnUsecase) Start(c echo.Context) error {
@@ -101,11 +111,8 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 
 	db := gateway.Connect()
 
-	tx := db.Begin()
-	defer tx.Rollback()
-
 	u := models.User{}
-	result := tx.
+	result := db.
 		Where("username = ?", "test@example.com").
 		First(&u)
 	if result.Error != nil {
@@ -113,12 +120,12 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 	}
 
 	wu := models.WebauthnUser{}
-	result = tx.
+	result = db.
 		Preload("Credentials").
 		Where("id = ?", u.UserID).
 		First(&wu)
 	if result.Error != nil {
-		tx.Rollback()
+		db.Rollback()
 		log.Printf("Error finding user: %+v\n", result.Error)
 		return result.Error
 	}
@@ -133,7 +140,20 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 		return err
 	}
 
-	tx.Commit()
+	lss := models.NewLoginSkipSession(u.UserID)
+	err = w.lssr.Save(lss)
+	if err != nil {
+		log.Printf("Error saving login skip session: %+v\n", result)
+		return err
+	}
 
-	return nil
+	response := WebauthnLoginFinishResponse{
+		LoginSkipToken: lss.Token,
+	}
+
+	return c.JSON(200, response)
+}
+
+type WebauthnLoginFinishResponse struct {
+	LoginSkipToken string `json:"login_skip_token"`
 }

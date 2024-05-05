@@ -5,7 +5,6 @@ import (
 
 	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
-	"github.com/k-narusawa/go-idp/authorization/domain/repository"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -14,16 +13,13 @@ import (
 
 type WebauthnLoginUsecase struct {
 	webauthn webauthn.WebAuthn
-	lssr     repository.ILoginSkipSessionRepository
 }
 
 func NewWebauthnLoginUsecase(
 	webauthn webauthn.WebAuthn,
-	lssr repository.ILoginSkipSessionRepository,
 ) WebauthnLoginUsecase {
 	return WebauthnLoginUsecase{
 		webauthn: webauthn,
-		lssr:     lssr,
 	}
 }
 
@@ -131,22 +127,7 @@ func (w *WebauthnLoginUsecase) Finish(c echo.Context) error {
 		return result.Error
 	}
 
-	lss := models.NewLoginSkipSession(u.UserID)
-	err = w.lssr.Save(lss)
-	if err != nil {
-		log.Printf("Error saving login skip session: %+v\n", result)
-		return err
-	}
-
-	response := WebauthnLoginFinishResponse{
-		LoginSkipToken: lss.Token,
-	}
-
 	tx.Commit()
 
-	return c.JSON(200, response)
-}
-
-type WebauthnLoginFinishResponse struct {
-	LoginSkipToken string `json:"login_skip_token"`
+	return nil
 }

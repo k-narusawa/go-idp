@@ -6,7 +6,7 @@ import (
 )
 
 type LoginSkipSession struct {
-	SessionID string `gorm:"primaryKey;autoIncrement"`
+	SessionID uint64 `gorm:"primaryKey;autoIncrement:true;"`
 	Token     string `gorm:"type:varchar(255);not null;unique;index"`
 	UserID    string
 	ExpiresAt time.Time
@@ -14,7 +14,6 @@ type LoginSkipSession struct {
 
 func NewLoginSkipSession(userId string) *LoginSkipSession {
 	return &LoginSkipSession{
-		SessionID: "",
 		Token:     generateToken(),
 		UserID:    userId,
 		ExpiresAt: time.Now().Add(5 * time.Minute),

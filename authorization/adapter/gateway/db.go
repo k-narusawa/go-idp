@@ -19,6 +19,7 @@ func DbInit() {
 	db.AutoMigrate(&models.AccessToken{})
 	db.AutoMigrate(&models.RefreshToken{})
 	db.AutoMigrate(&models.PKCE{})
+	db.AutoMigrate(&models.LoginSkipSession{})
 
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.WebauthnUser{}, &models.WebauthnCredential{})
