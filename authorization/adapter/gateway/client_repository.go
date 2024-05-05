@@ -17,6 +17,9 @@ func (r *ClientRepository) FindClientByID(id string) (*models.Client, error) {
 	var client models.Client
 	res := r.db.Where("id=?", id).First(&client)
 	if res.Error != nil {
+		if res.Error == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, res.Error
 	}
 

@@ -50,6 +50,31 @@ func (cu ClientUsecase) Register(c echo.Context) error {
 	return c.JSON(201, res)
 }
 
+func (cu ClientUsecase) Get(c echo.Context) error {
+	clientId := c.Param("id")
+
+	client, err := cu.cr.FindClientByID(clientId)
+	if err != nil {
+		return err
+	}
+
+	if client == nil {
+		return c.NoContent(404)
+	}
+
+	res := &ClientResponse{
+		ClientId:      client.ID,
+		RedirectUris:  strings.Split(client.RedirectURIs, ","),
+		ResponseTypes: strings.Split(client.ResponseTypes, ","),
+		GrantTypes:    strings.Split(client.GrantTypes, ","),
+		Scopes:        strings.Split(client.Scopes, ","),
+		Audience:      client.Audience,
+		Public:        client.Public,
+	}
+
+	return c.JSON(200, res)
+}
+
 type ClientRequest struct {
 
 	// クライアントID
