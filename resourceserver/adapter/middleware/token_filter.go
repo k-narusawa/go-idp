@@ -34,7 +34,7 @@ func TokenAuthMiddleware() echo.MiddlewareFunc {
 
 			req, _ := http.NewRequest(http.MethodPost, te, strings.NewReader(values.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			req.SetBasicAuth("go-idp", "~Ep52-Sp%iQtcEHpSLQ5,LT-,9*HMNfg,7WP")
+			req.SetBasicAuth("go-idp", "%7EEp52-Sp%25iQtcEHpSLQ5%2CLT-%2C9%2AHMNfg%2C7WP")
 
 			client := &http.Client{}
 			resp, err := client.Do(req)
