@@ -5,9 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
 	"github.com/k-narusawa/go-idp/authorization/domain/repository"
-	"github.com/k-narusawa/go-idp/authorization/oauth2"
 
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
 
@@ -19,17 +17,20 @@ type AuthorizationUsecase struct {
 	oauth2 fosite.OAuth2Provider
 	ur     repository.IUserRepository
 	isr    repository.IIdpSessionRepository
+	osr    repository.IOidcSessionRepository
 }
 
 func NewAuthorization(
 	oauth2 fosite.OAuth2Provider,
 	ur repository.IUserRepository,
 	isr repository.IIdpSessionRepository,
+	osr repository.IOidcSessionRepository,
 ) AuthorizationUsecase {
 	return AuthorizationUsecase{
 		oauth2: oauth2,
 		ur:     ur,
 		isr:    isr,
+		osr:    osr,
 	}
 }
 
@@ -107,20 +108,11 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 	} else {
 		ar := fosite.NewAuthorizeRequest()
 
-		db := gateway.Connect()
-		oidcSession := models.OidcSession{}
-		result := db.Preload("Client").Where("signature=?", is.SessionID).Find(&oidcSession)
-		if result.Error != nil {
-			log.Printf("Error occurred in GetIDSession: %+v", result.Error)
-			return result.Error
-		}
-
-		client, err := oauth2.NewIdpStorage().GetClient(ctx, req.URL.Query().Get("client_id"))
+		oidcSession, err := a.osr.FindBySignature(is.SessionID)
 		if err != nil {
-			log.Printf("Error occurred in GetClient: %+v", err)
+			log.Printf("Error occurred in FindBySignature: %+v", err)
 			return err
 		}
-		ar.Client = client
 
 		redirectURI, _ := url.Parse(req.URL.Query().Get("redirect_uri"))
 		ar.RedirectURI = redirectURI
@@ -132,6 +124,7 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		ar.GrantedScope = oidcSession.GetGrantedScopes()
 		ar.Session = oidcSession.GetSession()
 		ar.ID = oidcSession.GetID()
+		ar.Client = oidcSession.GetClient()
 
 		ar.ResponseTypes = req.URL.Query()["response_type"]
 		ar.State = req.URL.Query().Get("state")

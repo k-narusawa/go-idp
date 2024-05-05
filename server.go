@@ -91,9 +91,10 @@ func main() {
 	ur := gateway.NewUserRepository(db)
 	cr := gateway.NewClientRepository(db)
 	isr := gateway.NewIdpSessionRepository()
+	osr := gateway.NewOidcSessionRepository(db)
 
 	// oauth2
-	oau := ou.NewAuthorization(oauth2, ur, isr)
+	oau := ou.NewAuthorization(oauth2, ur, isr, osr)
 	otu := ou.NewTokenUsecase(oauth2)
 	oiu := ou.NewIntrospectUsecase(oauth2)
 	oru := ou.NewRevokeUsecase(oauth2)
