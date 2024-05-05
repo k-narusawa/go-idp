@@ -47,8 +47,8 @@ func NewOauth2Handler(
 	e.GET("/oauth2/certs", handler.ju.Invoke)
 	e.GET("/oauth2/logout", handler.lu.Invoke)
 
-	e.GET("/webauthn/login", handler.wu.Start)
-	e.POST("/webauthn/login", handler.wu.Finish)
+	e.GET("/authentication/webauthn/options", handler.wu.Start)
+	e.POST("/authentication/webauthn/login", handler.wu.Finish)
 
 	e.GET("/.well-known/openid-configuration", wellKnownOpenIDConfiguration)
 }

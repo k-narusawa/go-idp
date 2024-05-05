@@ -37,7 +37,7 @@ const LoginPage = () => {
 
   const onWebauthn = async () => {
     const options = await axios
-      .get("/webauthn/login")
+      .get("/authentication/webauthn/options")
       .then((response) => {
         return response.data;
       })
@@ -58,7 +58,7 @@ const LoginPage = () => {
     const credentials = await get(parsedOptions);
 
     await axios
-      .post(`/webauthn/login`, credentials.toJSON())
+      .post(`/authentication/webauthn/login`, credentials.toJSON())
       .then((response) => {
         console.log(response);
       })
@@ -120,12 +120,5 @@ const LoginPage = () => {
     </>
   );
 };
-
-function bufferDecode(value: string) {
-  return Uint8Array.from(
-    atob(value.replace(/-/g, "+").replace(/_/g, "/")),
-    (c) => c.charCodeAt(0)
-  );
-}
 
 ReactDOM.render(<LoginPage />, document.getElementById("app"));
