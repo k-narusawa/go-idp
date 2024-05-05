@@ -21,5 +21,9 @@
     "source.fixAll.eslint"
   ],
   "eslint.validate": ["javascript"],
-  "stylelint.packageManager": "npm"
+  "stylelint.packageManager": "npm",
+  "markdownlint.config": {
+    "default": true,
+    "MD034": false
+  }
 }
