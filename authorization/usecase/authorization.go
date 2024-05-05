@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
 	"github.com/k-narusawa/go-idp/authorization/domain/repository"
 	"github.com/k-narusawa/go-idp/authorization/oauth2"
 
@@ -16,19 +17,19 @@ import (
 
 type AuthorizationUsecase struct {
 	oauth2 fosite.OAuth2Provider
-	isr    repository.IIdSessionRepository
 	ur     repository.IUserRepository
+	isr    repository.IIdpSessionRepository
 }
 
 func NewAuthorization(
 	oauth2 fosite.OAuth2Provider,
-	isr repository.IIdSessionRepository,
 	ur repository.IUserRepository,
+	isr repository.IIdpSessionRepository,
 ) AuthorizationUsecase {
 	return AuthorizationUsecase{
 		oauth2: oauth2,
-		isr:    isr,
 		ur:     ur,
+		isr:    isr,
 	}
 }
 
@@ -40,7 +41,7 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 
 	canSkip := false
 
-	is, err := a.isr.GetIdSession(c)
+	is, err := a.isr.Get(c)
 	if err != nil {
 		log.Printf("Error occurred in GetIdSession: %+v", err)
 		return err
@@ -83,22 +84,19 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		}
 
 		clientId := ar.GetClient().GetID()
-		os := models.NewSession(clientId, user.UserID)
+		idpSession := models.NewIdpSession(clientId, user.UserID)
 
 		ar.SetResponseTypeHandled("code")
-		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, os)
+		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, idpSession)
 		if err != nil {
 			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
 			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
 			return err
 		}
 
-		log.Printf("SessionID: %+v", response.GetCode())
+		idpSession.SetSessionID(response.GetCode())
 
-		is := models.IDSessionOf(os.Subject, ar)
-		is.ClientID = req.PostForm.Get("client_id")
-
-		if err := a.isr.CreateIdSession(c, *is); err != nil {
+		if err := a.isr.Save(c, idpSession); err != nil {
 			log.Printf("Error occurred in CreateIdSession: %+v", err)
 			return err
 		}
@@ -111,6 +109,14 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 
 		log.Printf("IDSession: %+v", is)
 
+		db := gateway.Connect()
+		oidcSession := models.IDSession{}
+		result := db.Preload("Client").Where("signature=?", is.SessionID).Find(&oidcSession)
+		if result.Error != nil {
+			log.Printf("Error occurred in GetIDSession: %+v", result.Error)
+			return result.Error
+		}
+
 		client, err := oauth2.NewIdpStorage().GetClient(ctx, req.URL.Query().Get("client_id"))
 		if err != nil {
 			log.Printf("Error occurred in GetClient: %+v", err)
@@ -121,13 +127,13 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		redirectURI, _ := url.Parse(req.URL.Query().Get("redirect_uri"))
 		ar.RedirectURI = redirectURI
 
-		ar.Form = is.GetRequestForm()
-		ar.RequestedAt = is.GetRequestedAt()
-		ar.RequestedScope = is.GetRequestedScopes()
-		ar.GrantedAudience = is.GetGrantedAudience()
-		ar.GrantedScope = is.GetGrantedScopes()
-		ar.Session = is.GetSession()
-		ar.ID = is.GetID()
+		ar.Form = oidcSession.GetRequestForm()
+		ar.RequestedAt = oidcSession.GetRequestedAt()
+		ar.RequestedScope = oidcSession.GetRequestedScopes()
+		ar.GrantedAudience = oidcSession.GetGrantedAudience()
+		ar.GrantedScope = oidcSession.GetGrantedScopes()
+		ar.Session = oidcSession.GetSession()
+		ar.ID = oidcSession.GetID()
 
 		ar.ResponseTypes = req.URL.Query()["response_type"]
 		ar.State = req.URL.Query().Get("state")
@@ -143,7 +149,7 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		ar.Form.Add("code_challenge_method", req.URL.Query().Get("code_challenge_method"))
 
 		ar.SetResponseTypeHandled("code")
-		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, is.GetSession())
+		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, oidcSession.GetSession())
 		if err != nil {
 			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
 			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)

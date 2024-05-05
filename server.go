@@ -54,7 +54,8 @@ func main() {
 
 	e.Use(middleware.Recover())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
-	gob.Register(&models.IDSession{})
+
+	gob.Register(&models.IdpSession{})
 	gob.Register(&webauthn.SessionData{})
 	e.Renderer = &TemplateRenderer{
 		templates: template.Must(template.ParseGlob("views/*.html")),
@@ -87,12 +88,12 @@ func main() {
 
 	db := gateway.Connect()
 
-	isr := gateway.NewIdSessionRepository()
 	ur := gateway.NewUserRepository(db)
 	cr := gateway.NewClientRepository(db)
+	isr := gateway.NewIdpSessionRepository()
 
 	// oauth2
-	oau := ou.NewAuthorization(oauth2, isr, ur)
+	oau := ou.NewAuthorization(oauth2, ur, isr)
 	otu := ou.NewTokenUsecase(oauth2)
 	oiu := ou.NewIntrospectUsecase(oauth2)
 	oru := ou.NewRevokeUsecase(oauth2)

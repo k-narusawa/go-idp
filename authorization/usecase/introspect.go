@@ -22,8 +22,8 @@ func (i *IntrospectUsecase) Invoke(c echo.Context) error {
 	req := c.Request()
 
 	ctx := req.Context()
-	mySessionData := models.NewEmptySession()
-	ir, err := i.oauth2.NewIntrospectionRequest(ctx, req, mySessionData)
+	emptySession := models.NewEmptyIdpSession()
+	ir, err := i.oauth2.NewIntrospectionRequest(ctx, req, emptySession)
 	if err != nil {
 		log.Printf("Error occurred in NewIntrospectionRequest: %+v", err)
 		i.oauth2.WriteIntrospectionError(ctx, rw, err)
