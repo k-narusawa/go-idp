@@ -11,7 +11,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 )
 
-type IDSession struct {
+type OidcSession struct {
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
 	ClientID          string    `gorm:"type:varchar(255);not null"`
 	Client            Client    `gorm:"foreignKey:ClientID"`
@@ -26,59 +26,59 @@ type IDSession struct {
 	GrantedAudience   string    `gorm:"type:varchar(255);not null"`
 }
 
-func (is *IDSession) SetID(id string) {
+func (is *OidcSession) SetID(id string) {
 	is.ClientID = id
 }
 
-func (is *IDSession) GetID() string {
+func (is *OidcSession) GetID() string {
 	return is.ClientID
 }
 
-func (is *IDSession) GetRequestedAt() time.Time {
+func (is *OidcSession) GetRequestedAt() time.Time {
 	return is.RequestedAt
 }
 
-func (is *IDSession) GetClient() fosite.Client {
+func (is *OidcSession) GetClient() fosite.Client {
 	return &is.Client
 }
 
-func (is *IDSession) GetRequestedScopes() fosite.Arguments {
+func (is *OidcSession) GetRequestedScopes() fosite.Arguments {
 	return strings.Split(is.Scope, " ")
 }
 
-func (is *IDSession) GetRequestedAudience() fosite.Arguments {
+func (is *OidcSession) GetRequestedAudience() fosite.Arguments {
 	return strings.Split(is.RequestedAudience, " ")
 }
 
-func (is *IDSession) SetRequestedScopes(scopes fosite.Arguments) {
+func (is *OidcSession) SetRequestedScopes(scopes fosite.Arguments) {
 	is.Scope = strings.Join(scopes, " ")
 }
 
-func (is *IDSession) SetRequestedAudience(audience fosite.Arguments) {
+func (is *OidcSession) SetRequestedAudience(audience fosite.Arguments) {
 	is.RequestedAudience = strings.Join(audience, " ")
 }
 
-func (is *IDSession) AppendRequestedScope(scope string) {
+func (is *OidcSession) AppendRequestedScope(scope string) {
 	is.Scope = is.Scope + " " + scope
 }
 
-func (is *IDSession) GetGrantedScopes() fosite.Arguments {
+func (is *OidcSession) GetGrantedScopes() fosite.Arguments {
 	return strings.Split(is.GrantedScope, " ")
 }
 
-func (is *IDSession) GetGrantedAudience() fosite.Arguments {
+func (is *OidcSession) GetGrantedAudience() fosite.Arguments {
 	return strings.Split(is.GrantedAudience, " ")
 }
 
-func (is *IDSession) GrantScope(scope string) {
+func (is *OidcSession) GrantScope(scope string) {
 	is.GrantedScope = is.GrantedScope + " " + scope
 }
 
-func (is *IDSession) GrantAudience(audience string) {
+func (is *OidcSession) GrantAudience(audience string) {
 	is.GrantedAudience = is.GrantedAudience + " " + audience
 }
 
-func (is *IDSession) GetSession() fosite.Session {
+func (is *OidcSession) GetSession() fosite.Session {
 	var session openid.DefaultSession
 
 	err := json.Unmarshal([]byte(is.SessionData), &session)
@@ -90,7 +90,7 @@ func (is *IDSession) GetSession() fosite.Session {
 	return &session
 }
 
-func (is *IDSession) SetSession(session fosite.Session) {
+func (is *OidcSession) SetSession(session fosite.Session) {
 	jsonData, err := json.Marshal(session)
 
 	if err != nil {
@@ -100,7 +100,7 @@ func (is *IDSession) SetSession(session fosite.Session) {
 	is.SessionData = string(jsonData)
 }
 
-func (is *IDSession) GetRequestForm() url.Values {
+func (is *OidcSession) GetRequestForm() url.Values {
 	form, err := url.ParseQuery(is.FormData)
 	if err != nil {
 		log.Printf("Error occurred in GetRequestForm: %+v", err)
@@ -110,23 +110,23 @@ func (is *IDSession) GetRequestForm() url.Values {
 	return form
 }
 
-func (is *IDSession) Merge(requester fosite.Requester) {
+func (is *OidcSession) Merge(requester fosite.Requester) {
 	// Merge implementation goes here
 }
 
-func (is *IDSession) Sanitize(allowedParameters []string) fosite.Requester {
+func (is *OidcSession) Sanitize(allowedParameters []string) fosite.Requester {
 	// Sanitize implementation goes here
 	return nil
 }
 
-func IDSessionOf(signature string, requester fosite.Requester) *IDSession {
+func IDSessionOf(signature string, requester fosite.Requester) *OidcSession {
 	jsonData, err := json.Marshal(requester.GetSession())
 	if err != nil {
 		log.Printf("Error occurred in FromRequester: %+v", err)
 		return nil
 	}
 
-	return &IDSession{
+	return &OidcSession{
 		Signature:         signature,
 		ClientID:          requester.GetClient().GetID(),
 		RequestedAt:       requester.GetRequestedAt(),
@@ -140,8 +140,8 @@ func IDSessionOf(signature string, requester fosite.Requester) *IDSession {
 	}
 }
 
-func (is *IDSession) ToRequester() fosite.Requester {
-	return &IDSession{
+func (is *OidcSession) ToRequester() fosite.Requester {
+	return &OidcSession{
 		Signature:         is.Signature,
 		ClientID:          is.ClientID,
 		Client:            is.Client,
@@ -156,7 +156,7 @@ func (is *IDSession) ToRequester() fosite.Requester {
 	}
 }
 
-func (is *IDSession) ToAuthorizeRequest() fosite.AuthorizeRequester {
+func (is *OidcSession) ToAuthorizeRequest() fosite.AuthorizeRequester {
 	ar := fosite.NewAuthorizeRequest()
 	ar.Form = is.GetRequestForm()
 	ar.RequestedAt = is.GetRequestedAt()

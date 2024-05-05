@@ -108,7 +108,7 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		ar := fosite.NewAuthorizeRequest()
 
 		db := gateway.Connect()
-		oidcSession := models.IDSession{}
+		oidcSession := models.OidcSession{}
 		result := db.Preload("Client").Where("signature=?", is.SessionID).Find(&oidcSession)
 		if result.Error != nil {
 			log.Printf("Error occurred in GetIDSession: %+v", result.Error)

@@ -15,7 +15,7 @@ import (
 
 type IdpStorage struct {
 	Clients            []models.Client
-	IDSessions         []models.IDSession
+	OidcSessions       []models.OidcSession
 	AuthorizationCodes []models.AuthorizationCode
 	AccessTokens       []models.AccessToken
 	RefreshTokens      []models.RefreshToken
@@ -86,7 +86,7 @@ func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode
 func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
 	db := gateway.Connect()
 
-	var is models.IDSession
+	var is models.OidcSession
 	result := db.Where("signature=?", authorizeCode).First(&is)
 
 	if result.Error != nil {

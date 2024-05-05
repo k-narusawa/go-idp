@@ -14,7 +14,7 @@ func DbInit() {
 	}
 
 	db.AutoMigrate(&models.Client{})
-	db.AutoMigrate(&models.IDSession{})
+	db.AutoMigrate(&models.OidcSession{})
 	db.AutoMigrate(&models.AuthorizationCode{})
 	db.AutoMigrate(&models.AccessToken{})
 	db.AutoMigrate(&models.RefreshToken{})
