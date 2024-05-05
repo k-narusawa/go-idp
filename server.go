@@ -102,8 +102,8 @@ func main() {
 	oju := ou.NewJWKUsecase()
 	olu := ou.NewLogoutUsecase(oauth2, isr, osr)
 	osu := ou.NewSessionUsecase(lssr)
-	owu := ou.NewWebauthnUsecase(oauth2, *webAuthn, lssr)
-	wlu := ou.NewWebauthnLoginUsecase(*webAuthn)
+	owu := ou.NewAuthenticateWebauthnUsecase(oauth2, *webAuthn, lssr)
+	wlu := ou.NewRegisterWebauthnUsecase(*webAuthn)
 	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, osu, owu, wlu)
 
 	// client

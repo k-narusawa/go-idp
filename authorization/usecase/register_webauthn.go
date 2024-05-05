@@ -11,19 +11,19 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type WebauthnLoginUsecase struct {
+type RegisterWebauthnUsecase struct {
 	webauthn webauthn.WebAuthn
 }
 
-func NewWebauthnLoginUsecase(
+func NewRegisterWebauthnUsecase(
 	webauthn webauthn.WebAuthn,
-) WebauthnLoginUsecase {
-	return WebauthnLoginUsecase{
+) RegisterWebauthnUsecase {
+	return RegisterWebauthnUsecase{
 		webauthn: webauthn,
 	}
 }
 
-func (w *WebauthnLoginUsecase) Start(c echo.Context) error {
+func (w *RegisterWebauthnUsecase) Start(c echo.Context) error {
 	db := gateway.Connect()
 
 	tx := db.Begin()
@@ -81,7 +81,7 @@ func (w *WebauthnLoginUsecase) Start(c echo.Context) error {
 	return c.JSON(200, options)
 }
 
-func (w *WebauthnLoginUsecase) Finish(c echo.Context) error {
+func (w *RegisterWebauthnUsecase) Finish(c echo.Context) error {
 	db := gateway.Connect()
 
 	tx := db.Begin()

@@ -16,25 +16,25 @@ import (
 	"github.com/ory/fosite"
 )
 
-type WebauthnUsecase struct {
+type AuthenticateWebauthnUsecase struct {
 	oauth2   fosite.OAuth2Provider
 	webauthn webauthn.WebAuthn
 	lssr     repository.ILoginSkipSessionRepository
 }
 
-func NewWebauthnUsecase(
+func NewAuthenticateWebauthnUsecase(
 	oauth2 fosite.OAuth2Provider,
 	webauthn webauthn.WebAuthn,
 	lssr repository.ILoginSkipSessionRepository,
-) WebauthnUsecase {
-	return WebauthnUsecase{
+) AuthenticateWebauthnUsecase {
+	return AuthenticateWebauthnUsecase{
 		oauth2:   oauth2,
 		webauthn: webauthn,
 		lssr:     lssr,
 	}
 }
 
-func (w *WebauthnUsecase) Start(c echo.Context) error {
+func (w *AuthenticateWebauthnUsecase) Start(c echo.Context) error {
 	db := gateway.Connect()
 
 	tx := db.Begin()
@@ -98,7 +98,7 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 	return c.JSON(200, options)
 }
 
-func (w *WebauthnUsecase) Finish(c echo.Context) error {
+func (w *AuthenticateWebauthnUsecase) Finish(c echo.Context) error {
 	sess, err := session.Get("webauthn-session", c)
 	if err != nil {
 		return err

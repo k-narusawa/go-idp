@@ -14,8 +14,8 @@ type Oauth2Handler struct {
 	ru  usecase.RevokeUsecase
 	lu  usecase.LogoutUsecase
 	su  usecase.SessionUsecase
-	wu  usecase.WebauthnUsecase
-	wlu usecase.WebauthnLoginUsecase
+	wu  usecase.AuthenticateWebauthnUsecase
+	wlu usecase.RegisterWebauthnUsecase
 }
 
 func NewOauth2Handler(
@@ -27,8 +27,8 @@ func NewOauth2Handler(
 	ru usecase.RevokeUsecase,
 	lu usecase.LogoutUsecase,
 	su usecase.SessionUsecase,
-	wl usecase.WebauthnUsecase,
-	wlu usecase.WebauthnLoginUsecase,
+	wl usecase.AuthenticateWebauthnUsecase,
+	wlu usecase.RegisterWebauthnUsecase,
 ) {
 	handler := &Oauth2Handler{
 		au:  au,
