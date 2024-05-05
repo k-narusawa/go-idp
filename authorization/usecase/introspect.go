@@ -22,7 +22,7 @@ func (i *IntrospectUsecase) Invoke(c echo.Context) error {
 	req := c.Request()
 
 	ctx := req.Context()
-	mySessionData := models.NewSession("")
+	mySessionData := models.NewEmptySession()
 	ir, err := i.oauth2.NewIntrospectionRequest(ctx, req, mySessionData)
 	if err != nil {
 		log.Printf("Error occurred in NewIntrospectionRequest: %+v", err)

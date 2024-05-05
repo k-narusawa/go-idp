@@ -24,7 +24,7 @@ func (t *TokenUsecase) Invoke(c echo.Context) error {
 	ctx := req.Context()
 
 	// Create an empty session object which will be passed to the request handlers
-	mySessionData := models.NewSession("")
+	mySessionData := models.NewEmptySession()
 
 	// This will create an access request object and iterate through the registered TokenEndpointHandlers to validate the request.
 	accessRequest, err := t.oauth2.NewAccessRequest(ctx, req, mySessionData)

@@ -7,15 +7,15 @@ import (
 	"github.com/ory/fosite/token/jwt"
 )
 
-func NewSession(userId string) *openid.DefaultSession {
+func NewSession(clientId, userId string) *openid.DefaultSession {
 	header := &jwt.Headers{
 		Extra: make(map[string]interface{}),
 	}
-	header.Add("kid", "go-idp:123")
+	header.Add("kid", "ead3f8de")
 
 	claims := &jwt.IDTokenClaims{
 		Issuer:      "go-idp",
-		Audience:    []string{"go-idp"}, // FIXME: 動的に設定できるようにする
+		Audience:    []string{clientId},
 		Subject:     userId,
 		IssuedAt:    time.Now(),
 		RequestedAt: time.Now(),
@@ -28,4 +28,8 @@ func NewSession(userId string) *openid.DefaultSession {
 		Headers: header,
 		Subject: userId,
 	}
+}
+
+func NewEmptySession() *openid.DefaultSession {
+	return openid.NewDefaultSession()
 }

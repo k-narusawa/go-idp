@@ -82,7 +82,8 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 			return c.Render(http.StatusOK, "login.html", msg)
 		}
 
-		os := models.NewSession(user.UserID)
+		clientId := ar.GetClient().GetID()
+		os := models.NewSession(clientId, user.UserID)
 
 		ar.SetResponseTypeHandled("code")
 		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, os)
@@ -91,6 +92,8 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
 			return err
 		}
+
+		log.Printf("SessionID: %+v", response.GetCode())
 
 		is := models.IDSessionOf(os.Subject, ar)
 		is.ClientID = req.PostForm.Get("client_id")
@@ -105,6 +108,8 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		return c.Redirect(http.StatusFound, redirectTo)
 	} else {
 		ar := fosite.NewAuthorizeRequest()
+
+		log.Printf("IDSession: %+v", is)
 
 		client, err := oauth2.NewIdpStorage().GetClient(ctx, req.URL.Query().Get("client_id"))
 		if err != nil {
