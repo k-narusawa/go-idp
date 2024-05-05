@@ -135,13 +135,5 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 
 	tx.Commit()
 
-	response := WebauthnLoginFinishResponse{
-		LoginSessionId: "login_session_id",
-	}
-
-	return c.JSON(http.StatusOK, response)
-}
-
-type WebauthnLoginFinishResponse struct {
-	LoginSessionId string `json:"login_session_id"`
+	return nil
 }

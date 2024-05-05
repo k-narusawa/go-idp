@@ -57,14 +57,19 @@ const LoginPage = () => {
 
     const credentials = await get(parsedOptions);
 
-    await axios
+    const loginSkipResp = await axios
       .post(`/authentication/webauthn/login`, credentials.toJSON())
       .then((response) => {
-        console.log(response);
+        return response.data;
       })
-      .catch((error) => {
-        console.log(error);
+      .catch(() => {
+        return null;
       });
+
+    if (!loginSkipResp) {
+      console.error("WebAuthn login failed");
+      return;
+    }
   };
 
   return (

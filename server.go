@@ -92,6 +92,7 @@ func main() {
 	cr := gateway.NewClientRepository(db)
 	isr := gateway.NewIdpSessionRepository()
 	osr := gateway.NewOidcSessionRepository(db)
+	lssr := gateway.NewLoginSkipSessionRepository(db)
 
 	// oauth2
 	oau := ou.NewAuthorization(oauth2, ur, isr, osr)
@@ -100,9 +101,10 @@ func main() {
 	oru := ou.NewRevokeUsecase(oauth2)
 	oju := ou.NewJWKUsecase()
 	olu := ou.NewLogoutUsecase(oauth2, isr, osr)
+	osu := ou.NewSessionUsecase(lssr)
 	owu := ou.NewWebauthnUsecase(oauth2, *webAuthn)
-	wlu := ou.NewWebauthnLoginUsecase(*webAuthn)
-	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, owu, wlu)
+	wlu := ou.NewWebauthnLoginUsecase(*webAuthn, lssr)
+	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, osu, owu, wlu)
 
 	// client
 	cu := ou.NewClientUsecase(cr)

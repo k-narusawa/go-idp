@@ -34,7 +34,10 @@ func (l *LogoutUsecase) Invoke(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	l.osr.DeleteBySignature(oidcSession.SessionID)
+
+	if oidcSession != nil {
+		l.osr.DeleteBySignature(oidcSession.SessionID)
+	}
 
 	// Cookie上のSessionを全て削除
 	sess, _ := session.Get("go-idp-session", c)

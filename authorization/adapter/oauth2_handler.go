@@ -13,6 +13,7 @@ type Oauth2Handler struct {
 	ju  usecase.JWKUsecase
 	ru  usecase.RevokeUsecase
 	lu  usecase.LogoutUsecase
+	su  usecase.SessionUsecase
 	wu  usecase.WebauthnUsecase
 	wlu usecase.WebauthnLoginUsecase
 }
@@ -25,6 +26,7 @@ func NewOauth2Handler(
 	ju usecase.JWKUsecase,
 	ru usecase.RevokeUsecase,
 	lu usecase.LogoutUsecase,
+	su usecase.SessionUsecase,
 	wl usecase.WebauthnUsecase,
 	wlu usecase.WebauthnLoginUsecase,
 ) {
@@ -35,6 +37,7 @@ func NewOauth2Handler(
 		ju:  ju,
 		ru:  ru,
 		lu:  lu,
+		su:  su,
 		wu:  wl,
 		wlu: wlu,
 	}
@@ -46,6 +49,7 @@ func NewOauth2Handler(
 	e.POST("/oauth2/revoke", handler.ru.Invoke)
 	e.GET("/oauth2/certs", handler.ju.Invoke)
 	e.GET("/oauth2/logout", handler.lu.Invoke)
+	e.GET("/oauth2/session", handler.lu.Invoke)
 
 	e.GET("/authentication/webauthn/options", handler.wu.Start)
 	e.POST("/authentication/webauthn/login", handler.wu.Finish)
