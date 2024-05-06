@@ -119,10 +119,6 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 			return c.Render(http.StatusOK, "login.html", msg)
 		}
 
-		// for _, scope := range req.PostForm["scopes"] {
-		// 	ar.GrantScope(scope)
-		// }
-		// formからではなくクエリパラメータから取得したscopeを設定する
 		scopes := strings.Split(req.URL.Query()["scope"][0], " ")
 		log.Printf("scope: %+v", scopes)
 		for _, scope := range scopes {
