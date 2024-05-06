@@ -1,5 +1,5 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
-import NextCors from "nextjs-cors";
+import { JwtPayload, jwtDecode } from "jwt-decode";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -49,11 +49,19 @@ export const authOptions: NextAuthOptions = {
       token.refreshToken ??= account?.refresh_token;
       token.idToken ??= account?.id_token;
       token.expiresAt ??= account?.expires_at;
+
+      if (token.idToken) {
+        const idTokenClaims = jwtDecode<IdpJwtPayload>(token.idToken as string);
+        const email = idTokenClaims.email;
+        token.email = email;
+      }
+
       return token;
     },
 
     async session({ session, token, user }) {
       session.id = (token.sub as string) ? (token.sub as string) : "";
+      session.email = token.email ? token.email : "";
       session.accessToken = (token.accessToken as string)
         ? (token.accessToken as string)
         : "";
@@ -89,3 +97,7 @@ export const authOptions: NextAuthOptions = {
 };
 
 export default NextAuth(authOptions);
+
+interface IdpJwtPayload extends JwtPayload {
+  email?: string;
+}
