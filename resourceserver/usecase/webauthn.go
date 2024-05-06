@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
@@ -18,17 +17,20 @@ type WebauthnUsecase struct {
 	webauthn webauthn.WebAuthn
 	ur       repository.IUserRepository
 	wcr      repository.IWebauthnCredentialRepository
+	wsr      repository.IWebauthnSessionRepository
 }
 
 func NewWebauthnUsecase(
 	webauthn webauthn.WebAuthn,
 	ur repository.IUserRepository,
 	wcr repository.IWebauthnCredentialRepository,
+	wsr repository.IWebauthnSessionRepository,
 ) WebauthnUsecase {
 	return WebauthnUsecase{
 		webauthn: webauthn,
 		ur:       ur,
 		wcr:      wcr,
+		wsr:      wsr,
 	}
 }
 
@@ -69,10 +71,9 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 
 	ws := models.FromSessionData(session)
 
-	db := gateway.Connect()
-	result := db.Create(&ws)
-	if result.Error != nil {
-		return result.Error
+	err = w.wsr.Save(ws)
+	if err != nil {
+		return err
 	}
 
 	return c.JSON(200, options.Response)
@@ -80,19 +81,16 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 
 func (w *WebauthnUsecase) Finish(c echo.Context) error {
 	ir := c.Get(("ir")).(rm.IntrospectResponse)
-	db := gateway.Connect()
+	challenge := c.QueryParam("challenge")
 
 	user, err := w.ur.FindByUserID(ir.Sub)
 	if err != nil {
 		return err
 	}
 
-	wsd := models.WebauthnSessionData{}
-	result := db.Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
-	if result.Error != nil {
-		db.Rollback()
-		log.Printf("Error finding session data: %+v\n", result.Error)
-		return result.Error
+	wsd, err := w.wsr.FindByChallenge(challenge)
+	if err != nil {
+		return err
 	}
 
 	session := wsd.ToSessionData()
@@ -104,15 +102,16 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 		return err
 	}
 
-	result = db.Delete(&wsd).Where("challenge = ?", c.QueryParam("challenge"))
-	if result.Error != nil {
-		log.Printf("Error deleting session data: %+v\n", result.Error)
-		return result.Error
+	err = w.wsr.DeleteByChallenge(challenge)
+	if err != nil {
+		return err
 	}
 
-	w.wcr.Save(models.FromWebauthnCredential(user.UserID, credential))
+	if w.wcr.Save(models.FromWebauthnCredential(user.UserID, credential)) != nil {
+		return err
+	}
 
-	return nil
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (w *WebauthnUsecase) Delete(c echo.Context) error {

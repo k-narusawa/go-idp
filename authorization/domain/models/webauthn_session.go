@@ -8,11 +8,9 @@ import (
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"gorm.io/gorm"
 )
 
 type WebauthnSessionData struct {
-	gorm.Model
 	Challenge            string    `gorm:"unique" json:"challenge"`
 	UserID               []byte    `json:"user_id"`
 	AllowedCredentialIDs string    `json:"allowed_credentials,omitempty"`
