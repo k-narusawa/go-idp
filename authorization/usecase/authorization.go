@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/k-narusawa/go-idp/authorization/domain/repository"
 
@@ -18,6 +19,7 @@ type AuthorizationUsecase struct {
 	ur     repository.IUserRepository
 	isr    repository.IIdpSessionRepository
 	osr    repository.IOidcSessionRepository
+	lssr   repository.ILoginSkipSessionRepository
 }
 
 func NewAuthorization(
@@ -25,12 +27,14 @@ func NewAuthorization(
 	ur repository.IUserRepository,
 	isr repository.IIdpSessionRepository,
 	osr repository.IOidcSessionRepository,
+	lssr repository.ILoginSkipSessionRepository,
 ) AuthorizationUsecase {
 	return AuthorizationUsecase{
 		oauth2: oauth2,
 		ur:     ur,
 		isr:    isr,
 		osr:    osr,
+		lssr:   lssr,
 	}
 }
 
@@ -41,18 +45,19 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 	ctx := req.Context()
 
 	canSkip := false
+	hasLoginSkipToken := false
 
-	is, err := a.isr.Get(c)
-	if err != nil {
-		log.Printf("Error occurred in GetIdSession: %+v", err)
-		return err
+	idpSession, _ := a.isr.Get(c)
+
+	if idpSession != nil {
+		if idpSession.LoginSkipToken == "" {
+			canSkip = true
+		} else if idpSession.LoginSkipToken != "" {
+			hasLoginSkipToken = true
+		}
 	}
 
-	if is != nil {
-		canSkip = true
-	}
-
-	if !canSkip {
+	if !canSkip && !hasLoginSkipToken {
 		ar, err := a.oauth2.NewAuthorizeRequest(ctx, req)
 		if err != nil {
 			log.Printf("Error occurred in NewAuthorizeRequest: %+v", err)
@@ -105,10 +110,57 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		redirectTo := createRedirectTo(ar, response)
 
 		return c.Redirect(http.StatusFound, redirectTo)
+	} else if hasLoginSkipToken {
+		ar, err := a.oauth2.NewAuthorizeRequest(ctx, req)
+		if err != nil {
+			log.Printf("Error occurred in NewAuthorizeRequest: %+v", err)
+			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
+			msg := "username or password is invalid."
+			return c.Render(http.StatusOK, "login.html", msg)
+		}
+
+		// for _, scope := range req.PostForm["scopes"] {
+		// 	ar.GrantScope(scope)
+		// }
+		// formからではなくクエリパラメータから取得したscopeを設定する
+		scopes := strings.Split(req.URL.Query()["scope"][0], " ")
+		log.Printf("scope: %+v", scopes)
+		for _, scope := range scopes {
+			ar.GrantScope(scope)
+		}
+
+		lss, err := a.lssr.FindByToken(idpSession.LoginSkipToken)
+		if err != nil {
+			msg := "unexpected error occurred."
+			return c.Render(http.StatusOK, "login.html", msg)
+		}
+
+		clientId := ar.GetClient().GetID()
+		idpSession := models.NewIdpSession(clientId, lss.UserID)
+
+		ar.SetResponseTypeHandled("code")
+		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, idpSession)
+		if err != nil {
+			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
+			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
+			return err
+		}
+
+		idpSession.SetSessionID(response.GetCode())
+		idpSession.RemoveLoginSkipToken()
+
+		if err := a.isr.Save(c, idpSession); err != nil {
+			msg := "unexpected error occurred."
+			return c.Render(http.StatusOK, "login.html", msg)
+		}
+
+		redirectTo := createRedirectTo(ar, response)
+
+		return c.Redirect(http.StatusFound, redirectTo)
 	} else {
 		ar := fosite.NewAuthorizeRequest()
 
-		oidcSession, err := a.osr.FindBySignature(is.SessionID)
+		oidcSession, err := a.osr.FindBySignature(idpSession.SessionID)
 		if err != nil {
 			log.Printf("Error occurred in FindBySignature: %+v", err)
 			return err

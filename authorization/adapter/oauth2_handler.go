@@ -27,8 +27,8 @@ func NewOauth2Handler(
 	ru usecase.RevokeUsecase,
 	lu usecase.LogoutUsecase,
 	su usecase.SessionUsecase,
-	wl usecase.AuthenticateWebauthnUsecase,
-	wlu usecase.RegisterWebauthnUsecase,
+	awu usecase.AuthenticateWebauthnUsecase,
+	rwu usecase.RegisterWebauthnUsecase,
 ) {
 	handler := &Oauth2Handler{
 		au:  au,
@@ -38,8 +38,8 @@ func NewOauth2Handler(
 		ru:  ru,
 		lu:  lu,
 		su:  su,
-		wu:  wl,
-		wlu: wlu,
+		wu:  awu,
+		wlu: rwu,
 	}
 
 	e.GET("/oauth2/auth", handler.au.Invoke)
@@ -49,7 +49,7 @@ func NewOauth2Handler(
 	e.POST("/oauth2/revoke", handler.ru.Invoke)
 	e.GET("/oauth2/certs", handler.ju.Invoke)
 	e.GET("/oauth2/logout", handler.lu.Invoke)
-	e.GET("/oauth2/session", handler.lu.Invoke)
+	e.GET("/oauth2/session", handler.su.SkipLogin)
 
 	e.GET("/authentication/webauthn/options", handler.wu.Start)
 	e.POST("/authentication/webauthn/login", handler.wu.Finish)

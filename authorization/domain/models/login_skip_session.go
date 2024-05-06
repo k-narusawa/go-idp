@@ -28,3 +28,7 @@ func generateToken() string {
 	}
 	return string(b)
 }
+
+func (lss *LoginSkipSession) IsExpired() bool {
+	return lss.ExpiresAt.Before(time.Now())
+}

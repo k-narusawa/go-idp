@@ -70,6 +70,18 @@ const LoginPage = () => {
       console.error("WebAuthn login failed");
       return;
     }
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const pushTo =
+      "/oauth2/session" +
+      "?" +
+      urlParams.toString() +
+      `&token=${loginSkipResp.login_skip_token}`;
+
+    window.location.href = pushTo;
+
+    return;
   };
 
   return (

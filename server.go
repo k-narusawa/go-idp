@@ -95,13 +95,13 @@ func main() {
 	lssr := gateway.NewLoginSkipSessionRepository(db)
 
 	// oauth2
-	oau := ou.NewAuthorization(oauth2, ur, isr, osr)
+	oau := ou.NewAuthorization(oauth2, ur, isr, osr, lssr)
 	otu := ou.NewTokenUsecase(oauth2)
 	oiu := ou.NewIntrospectUsecase(oauth2)
 	oru := ou.NewRevokeUsecase(oauth2)
 	oju := ou.NewJWKUsecase()
 	olu := ou.NewLogoutUsecase(oauth2, isr, osr)
-	osu := ou.NewSessionUsecase(lssr)
+	osu := ou.NewSessionUsecase(isr, lssr)
 	owu := ou.NewAuthenticateWebauthnUsecase(oauth2, *webAuthn, lssr)
 	wlu := ou.NewRegisterWebauthnUsecase(*webAuthn)
 	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, osu, owu, wlu)

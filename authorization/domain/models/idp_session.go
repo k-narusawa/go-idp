@@ -15,12 +15,13 @@ type Session interface {
 }
 
 type IdpSession struct {
-	SessionID string                         `json:"session_id"`
-	Claims    *jwt.IDTokenClaims             `json:"id_token_claims"`
-	Headers   *jwt.Headers                   `json:"headers"`
-	ExpiresAt map[fosite.TokenType]time.Time `json:"expires_at"`
-	Username  string                         `json:"username"`
-	Subject   string                         `json:"subject"`
+	SessionID      string                         `json:"session_id"`
+	Claims         *jwt.IDTokenClaims             `json:"id_token_claims"`
+	Headers        *jwt.Headers                   `json:"headers"`
+	ExpiresAt      map[fosite.TokenType]time.Time `json:"expires_at"`
+	Username       string                         `json:"username"`
+	Subject        string                         `json:"subject"`
+	LoginSkipToken string                         `json:"login_skip_token"`
 }
 
 func NewIdpSession(clientId, userId string) *IdpSession {
@@ -114,4 +115,12 @@ func (s *IdpSession) IDTokenClaims() *jwt.IDTokenClaims {
 		s.Claims = &jwt.IDTokenClaims{}
 	}
 	return s.Claims
+}
+
+func (s *IdpSession) SetLoginSkipToken(token string) {
+	s.LoginSkipToken = token
+}
+
+func (s *IdpSession) RemoveLoginSkipToken() {
+	s.LoginSkipToken = ""
 }
