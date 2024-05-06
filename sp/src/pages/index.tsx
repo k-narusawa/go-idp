@@ -121,6 +121,8 @@ const Home = ({ session }: Props) => {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession({ req: context.req });
+  console.log(session?.accessToken);
+  console.log(session?.refreshToken);
 
   return {
     props: {

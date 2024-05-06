@@ -3,6 +3,7 @@ package usecase
 import (
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
 	"github.com/k-narusawa/go-idp/authorization/domain/repository"
@@ -112,6 +113,51 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (w *WebauthnUsecase) Get(c echo.Context) error {
+	ir := c.Get(("ir")).(rm.IntrospectResponse)
+
+	wcs, err := w.wcr.FindByUserID(ir.Sub)
+	if err != nil {
+		return err
+	}
+
+	credentials := make([]webauthn.Credential, len(wcs))
+	for i, wc := range wcs {
+		credentials[i] = *wc.To()
+	}
+
+	resp := WebauthnResponse{
+		Keys: make([]WebauthnResponseItem, len(credentials)),
+	}
+
+	for i, cred := range credentials {
+		id, err := uuid.FromBytes(cred.ID)
+		if err != nil {
+			return err
+		}
+
+		aaguid, _ := uuid.FromBytes(cred.Authenticator.AAGUID)
+
+		resp.Keys[i] = WebauthnResponseItem{
+			ID:      id.String(),
+			AAGUID:  aaguid.String(),
+			KeyName: models.Authenticators[aaguid.String()].Name,
+		}
+	}
+
+	return c.JSON(200, resp)
+}
+
+type WebauthnResponse struct {
+	Keys []WebauthnResponseItem `json:"keys"`
+}
+
+type WebauthnResponseItem struct {
+	ID      string `json:"id"`
+	AAGUID  string `json:"aaguid"`
+	KeyName string `json:"key_name"`
 }
 
 func (w *WebauthnUsecase) Delete(c echo.Context) error {

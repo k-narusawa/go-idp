@@ -22,8 +22,8 @@ func NewResourceServerHandler(e *echo.Echo, uu usecase.UserinfoUsecase, wu useca
 	r.Use(middleware.TokenAuthMiddleware())
 
 	r.GET("/users/userinfo", handler.uu.GetUserinfo)
-	// rs.GET("/users/webauthn/list", handler.wu.Get)
 	r.GET("/users/registrations/webauthn/options", handler.wu.Start)
 	r.POST("/users/registrations/webauthn/result", handler.wu.Finish)
+	r.GET("/users/webauthn", handler.wu.Get)
 	// r.DELETE("/users/webauthn", handler.wu.Delete)
 }
