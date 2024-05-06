@@ -8,11 +8,10 @@ import (
 
 type WebauthnUser struct {
 	gorm.Model
-	WuID        int64                `gorm:"primaryKey"`
-	ID          string               `gorm:"type:text"`
-	Name        string               `gorm:"varchar(255)"`
-	DisplayName string               `gorm:"varchar(255)"`
-	Credentials []WebauthnCredential `gorm:"foreignKey:UserID;references:ID"`
+	ID          string
+	Name        string
+	DisplayName string
+	Credentials []WebauthnCredential
 }
 
 func NewWebauthnUser(userId string, userName string) *WebauthnUser {
@@ -20,45 +19,38 @@ func NewWebauthnUser(userId string, userName string) *WebauthnUser {
 	wu.ID = userId
 	wu.Name = userId
 	wu.DisplayName = userName
+	wu.Credentials = []WebauthnCredential{}
 	return wu
 }
 
-// WebAuthnID returns the user's ID
 func (wu WebauthnUser) WebAuthnID() []byte {
 	return []byte(wu.ID)
 }
 
-// WebAuthnName returns the user's username
 func (wu WebauthnUser) WebAuthnName() string {
 	return wu.Name
 }
 
-// WebAuthnDisplayName returns the user's display name
 func (wu WebauthnUser) WebAuthnDisplayName() string {
 	return wu.DisplayName
 }
 
-// WebAuthnIcon is not (yet) implemented
 func (wu WebauthnUser) WebAuthnIcon() string {
 	return ""
 }
 
-// AddCredential associates the credential to the user
 func (wu *WebauthnUser) AddCredential(cred webauthn.Credential) {
-	wu.Credentials = append(wu.Credentials, *FromWebauthnCredential(&cred))
+	wu.Credentials = append(wu.Credentials, *FromWebauthnCredential(wu.ID, &cred))
 }
 
-// WebAuthnCredentials returns credentials owned by the user
 func (wu WebauthnUser) WebAuthnCredentials() []webauthn.Credential {
 	credentials := []webauthn.Credential{}
 	for _, cred := range wu.Credentials {
-		credentials = append(credentials, *cred.ToWebauthnCredential())
+		credentials = append(credentials, *cred.To())
 	}
 	return credentials
 }
 
-// CredentialExcludeList returns a CredentialDescriptor array filled
-// with all the user's credentials
 func (wu WebauthnUser) CredentialExcludeList() []protocol.CredentialDescriptor {
 
 	credentialExcludeList := []protocol.CredentialDescriptor{}

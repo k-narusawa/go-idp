@@ -6,14 +6,11 @@ import (
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"gorm.io/gorm"
 )
 
 type WebauthnCredential struct {
-	gorm.Model
-	CredID          int64  `gorm:"primaryKey"`
+	ID              []byte `gorm:"type:blob;index;primary_key"`
 	UserID          string `gorm:"type:varchar(36);not null;index"`
-	ID              []byte `gorm:"type:blob;index"`
 	PublicKey       []byte `gorm:"type:blob"`
 	AttestationType string `gorm:"type:text"`
 	Transport       string `gorm:"type:text"`
@@ -21,7 +18,7 @@ type WebauthnCredential struct {
 	Authenticator   string `gorm:"type:text"`
 }
 
-func (c *WebauthnCredential) ToWebauthnCredential() *webauthn.Credential {
+func (c *WebauthnCredential) To() *webauthn.Credential {
 	tp := strings.Split(c.Transport, ",")
 	var transport []protocol.AuthenticatorTransport
 	for _, t := range tp {
@@ -52,7 +49,7 @@ func (c *WebauthnCredential) ToWebauthnCredential() *webauthn.Credential {
 	}
 }
 
-func FromWebauthnCredential(cred *webauthn.Credential) *WebauthnCredential {
+func FromWebauthnCredential(userId string, cred *webauthn.Credential) *WebauthnCredential {
 	var transport []string
 	for _, t := range cred.Transport {
 		transport = append(transport, string(t))
@@ -70,6 +67,7 @@ func FromWebauthnCredential(cred *webauthn.Credential) *WebauthnCredential {
 
 	return &WebauthnCredential{
 		ID:              cred.ID,
+		UserID:          userId,
 		PublicKey:       cred.PublicKey,
 		AttestationType: cred.AttestationType,
 		Transport:       strings.Join(transport, ","),

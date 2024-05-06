@@ -89,6 +89,7 @@ func main() {
 	db := gateway.Connect()
 
 	ur := gateway.NewUserRepository(db)
+	wcr := gateway.NewWebauthnCredentialRepository(db)
 	cr := gateway.NewClientRepository(db)
 	isr := gateway.NewIdpSessionRepository()
 	osr := gateway.NewOidcSessionRepository(db)
@@ -102,9 +103,8 @@ func main() {
 	oju := ou.NewJWKUsecase()
 	olu := ou.NewLogoutUsecase(oauth2, isr, osr)
 	osu := ou.NewSessionUsecase(isr, lssr)
-	owu := ou.NewAuthenticateWebauthnUsecase(oauth2, *webAuthn, lssr)
-	wlu := ou.NewRegisterWebauthnUsecase(*webAuthn)
-	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, osu, owu, wlu)
+	owu := ou.NewAuthenticateWebauthnUsecase(oauth2, *webAuthn, ur, wcr, lssr)
+	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, osu, owu)
 
 	// client
 	cu := ou.NewClientUsecase(cr)
@@ -112,7 +112,7 @@ func main() {
 
 	// resource server
 	uu := ru.UserinfoUsecase{}
-	wu := ru.NewWebauthnUsecase(*webAuthn)
+	wu := ru.NewWebauthnUsecase(*webAuthn, ur, wcr)
 	ra.NewResourceServerHandler(e, uu, wu)
 
 	e.Logger.Fatal(e.Start(":3846"))

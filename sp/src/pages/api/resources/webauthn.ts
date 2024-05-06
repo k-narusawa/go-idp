@@ -16,11 +16,14 @@ export default async function handler(
 
   if (req.method === "GET") {
     const apiResponse = await axios
-      .get(`${process.env.IDP_URL}/api/v1/resources/users/webauthn`, {
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-      })
+      .get(
+        `${process.env.IDP_URL}/resources/users/registrations/webauthn/options`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+        }
+      )
       .then((response) => response.data)
       .catch((error) => {
         console.error(error);
@@ -37,7 +40,7 @@ export default async function handler(
   } else if (req.method === "POST") {
     const apiResponse = await axios
       .post(
-        `${process.env.IDP_URL}/api/v1/resources/users/webauthn`,
+        `${process.env.IDP_URL}/resources/users/registrations/webauthn/result`,
         req.body,
         {
           headers: {
@@ -53,11 +56,6 @@ export default async function handler(
         console.error(error);
         return null;
       });
-
-    if (!apiResponse) {
-      res.status(500).end("Internal Server Error");
-      return;
-    }
 
     res.status(200).json(apiResponse);
     return;

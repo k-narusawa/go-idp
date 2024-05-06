@@ -28,6 +28,18 @@ func (r *UserRepository) FindByUsername(username string) (*models.User, error) {
 	return &user, nil
 }
 
+func (r *UserRepository) FindByUserID(userID string) (*models.User, error) {
+	db := Connect()
+	var user models.User
+	res := db.Where("user_id=?", userID).First(&user)
+	if res.Error != nil {
+		log.Printf("Error occurred in FindByUserID: %+v", res.Error)
+		return nil, res.Error
+	}
+
+	return &user, nil
+}
+
 func (r *UserRepository) Save(user *models.User) error {
 	res := r.db.Save(user)
 	if res.Error != nil {

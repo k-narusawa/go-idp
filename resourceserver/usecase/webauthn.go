@@ -5,8 +5,9 @@ import (
 	"net/http"
 
 	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
-	am "github.com/k-narusawa/go-idp/authorization/domain/models"
-	"github.com/k-narusawa/go-idp/resourceserver/domain/models"
+	"github.com/k-narusawa/go-idp/authorization/domain/models"
+	"github.com/k-narusawa/go-idp/authorization/domain/repository"
+	rm "github.com/k-narusawa/go-idp/resourceserver/domain/models"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -15,42 +16,38 @@ import (
 
 type WebauthnUsecase struct {
 	webauthn webauthn.WebAuthn
+	ur       repository.IUserRepository
+	wcr      repository.IWebauthnCredentialRepository
 }
 
-func NewWebauthnUsecase(webauthn webauthn.WebAuthn) WebauthnUsecase {
-	return WebauthnUsecase{webauthn: webauthn}
+func NewWebauthnUsecase(
+	webauthn webauthn.WebAuthn,
+	ur repository.IUserRepository,
+	wcr repository.IWebauthnCredentialRepository,
+) WebauthnUsecase {
+	return WebauthnUsecase{
+		webauthn: webauthn,
+		ur:       ur,
+		wcr:      wcr,
+	}
 }
 
 func (w *WebauthnUsecase) Start(c echo.Context) error {
-	ir := c.Get(("ir")).(models.IntrospectResponse)
+	ir := c.Get(("ir")).(rm.IntrospectResponse)
 
-	db := gateway.Connect()
-	tx := db.Begin()
-	defer tx.Rollback()
-
-	u := am.User{}
-	result := tx.
-		Where("user_id = ?", ir.Sub).
-		First(&u)
-	if result.Error != nil {
-		tx.Rollback()
-		return result.Error
+	user, err := w.ur.FindByUserID(ir.Sub)
+	if err != nil {
+		return err
 	}
 
-	wu := am.WebauthnUser{}
-	result = tx.Where("name = ?", ir.Sub).First(&wu)
+	wu := models.NewWebauthnUser(user.UserID, user.Username)
+	credentials, err := w.wcr.FindByUserID(user.UserID)
+	if err != nil {
+		return err
+	}
 
-	if result.Error != nil {
-		if result.Error.Error() != "record not found" {
-			tx.Rollback()
-			return result.Error
-		}
-		wu = *am.NewWebauthnUser(ir.Sub, u.Username)
-		result = tx.Create(&wu)
-		if result.Error != nil {
-			tx.Rollback()
-			return result.Error
-		}
+	for _, cred := range credentials {
+		wu.AddCredential(*cred.To())
 	}
 
 	authSelect := protocol.AuthenticatorSelection{
@@ -60,112 +57,72 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 	}
 	conveyancePref := protocol.PreferNoAttestation
 
-	options, sd, err := w.webauthn.BeginRegistration(wu, webauthn.WithAuthenticatorSelection(authSelect), webauthn.WithConveyancePreference(conveyancePref))
+	options, session, err := w.webauthn.BeginRegistration(
+		wu,
+		webauthn.WithAuthenticatorSelection(authSelect),
+		webauthn.WithConveyancePreference(conveyancePref),
+	)
 
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
-	ws := am.FromSessionData(sd)
+	ws := models.FromSessionData(session)
 
-	result = tx.Create(&ws)
+	db := gateway.Connect()
+	result := db.Create(&ws)
 	if result.Error != nil {
-		tx.Rollback()
 		return result.Error
 	}
 
-	tx.Commit()
-
-	return c.JSON(http.StatusOK, options)
+	return c.JSON(200, options.Response)
 }
 
 func (w *WebauthnUsecase) Finish(c echo.Context) error {
-	ir := c.Get(("ir")).(models.IntrospectResponse)
-
+	ir := c.Get(("ir")).(rm.IntrospectResponse)
 	db := gateway.Connect()
-	tx := db.Begin()
-	defer tx.Rollback()
 
-	u := am.User{}
-	result := tx.
-		Where("user_id = ?", ir.Sub).
-		First(&u)
-	if result.Error != nil {
-		tx.Rollback()
-		return result.Error
+	user, err := w.ur.FindByUserID(ir.Sub)
+	if err != nil {
+		return err
 	}
 
-	wsd := am.WebauthnSessionData{}
-	result = tx.Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
+	wsd := models.WebauthnSessionData{}
+	result := db.Where("challenge = ?", c.QueryParam("challenge")).First(&wsd)
 	if result.Error != nil {
-		tx.Rollback()
+		db.Rollback()
+		log.Printf("Error finding session data: %+v\n", result.Error)
 		return result.Error
 	}
 
 	session := wsd.ToSessionData()
 
-	wu := am.NewWebauthnUser(u.UserID, u.Username)
+	wu := models.NewWebauthnUser(user.UserID, user.Username)
+
 	credential, err := w.webauthn.FinishRegistration(wu, *session, c.Request())
 	if err != nil {
 		return err
 	}
 
-	result = tx.Delete(&wsd).Where("challenge = ?", c.QueryParam("challenge"))
+	result = db.Delete(&wsd).Where("challenge = ?", c.QueryParam("challenge"))
 	if result.Error != nil {
 		log.Printf("Error deleting session data: %+v\n", result.Error)
 		return result.Error
 	}
 
-	wu.AddCredential(*credential)
+	w.wcr.Save(models.FromWebauthnCredential(user.UserID, credential))
 
-	result = tx.Create(&wu.Credentials)
-	if result.Error != nil {
-		tx.Rollback()
-		return result.Error
-	}
-	result = tx.Create(&wu)
-	if result.Error != nil {
-		tx.Rollback()
-		return result.Error
-	}
-
-	tx.Commit()
-
-	return c.JSON(http.StatusOK, credential)
-}
-
-func (w *WebauthnUsecase) Get(c echo.Context) error {
-	ir := c.Get(("ir")).(models.IntrospectResponse)
-
-	db := gateway.Connect()
-	tx := db.Begin()
-
-	wu := am.WebauthnUser{}
-	result := tx.
-		Preload("Credentials").
-		Where("name = ?", ir.Sub).
-		Find(&wu)
-	if result.Error != nil {
-		tx.Rollback()
-		return result.Error
-	}
-
-	cred := wu.WebAuthnCredentials()
-
-	tx.Commit()
-
-	return c.JSON(http.StatusOK, cred)
+	return nil
 }
 
 func (w *WebauthnUsecase) Delete(c echo.Context) error {
-	ir := c.Get(("ir")).(models.IntrospectResponse)
+	ir := c.Get(("ir")).(rm.IntrospectResponse)
 
 	db := gateway.Connect()
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	wu := am.WebauthnUser{}
+	wu := models.WebauthnUser{}
 	result := tx.
 		Preload("Credentials").
 		Where("name = ?", ir.Sub).

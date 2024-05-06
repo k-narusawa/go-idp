@@ -22,7 +22,7 @@ func DbInit() {
 	db.AutoMigrate(&models.LoginSkipSession{})
 
 	db.AutoMigrate(&models.User{})
-	db.AutoMigrate(&models.WebauthnUser{}, &models.WebauthnCredential{})
+	db.AutoMigrate(&models.WebauthnCredential{})
 	db.AutoMigrate(&models.WebauthnSessionData{})
 
 	testUser := models.NewUser("test@example.com", "!Password0")

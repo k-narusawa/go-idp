@@ -5,12 +5,10 @@ import { Button } from "@/components/Button";
 import axios from "axios";
 import {
   create,
-  get,
   parseCreationOptionsFromJSON,
-  parseRequestOptionsFromJSON,
 } from "@github/webauthn-json/browser-ponyfill";
 import { Toast } from "@/components/Toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
   session: Session | null;
@@ -20,9 +18,11 @@ const Home = ({ session }: Props) => {
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
 
-  const onLogin = () => {
-    signIn("go-idp");
-  };
+  useEffect(() => {
+    if (!session) {
+      signIn("go-idp");
+    }
+  }, [session]);
 
   const onLogout = () => {
     signOut({ callbackUrl: "signOut", redirect: true });
@@ -39,15 +39,15 @@ const Home = ({ session }: Props) => {
         return null;
       });
 
-    const challenge = options.publicKey.challenge;
+    const challenge = options.challenge;
 
     if (!options) {
       return;
     }
 
-    const parsedOptions = parseCreationOptionsFromJSON({
-      publicKey: options.publicKey,
-    });
+    console.log(options);
+
+    const parsedOptions = parseCreationOptionsFromJSON({ publicKey: options });
 
     const response = await create(parsedOptions);
 
@@ -59,47 +59,11 @@ const Home = ({ session }: Props) => {
           challenge: challenge,
         },
       })
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  };
-
-  const onCheckPasskey = async () => {
-    var options = await axios
-      .get("http://localhost:3846/api/v1/webauthn/login")
-      .then((response) => {
-        return response.data;
-      })
-      .catch((error) => {
-        console.error(error);
-        return null;
-      });
-
-    if (!options) {
-      console.error("WebAuthn login failed");
-      return;
-    }
-
-    const parsedOptions = parseRequestOptionsFromJSON({
-      publicKey: options.publicKey,
-    });
-
-    const challenge = options.publicKey.challenge;
-    const response = await get(parsedOptions);
-
-    await axios
-      .post(`http://localhost:3846/api/v1/webauthn/login`, response.toJSON(), {
-        params: {
-          challenge: challenge,
-        },
-      })
-      .then((response) => {
+      .then(() => {
         setSuccess(true);
       })
       .catch((error) => {
+        console.error(error);
         setError(true);
       });
   };
@@ -109,14 +73,14 @@ const Home = ({ session }: Props) => {
       <>
         {success && (
           <Toast
-            message="パスキーログイン成功"
+            message="パスキー登録成功"
             type="success"
             onClose={() => setSuccess(false)}
           />
         )}
         {error && (
           <Toast
-            message="パスキーログイン失敗"
+            message="パスキー登録失敗"
             type="danger"
             onClose={() => setError(false)}
           />
@@ -170,18 +134,6 @@ const Home = ({ session }: Props) => {
           <div className="flex justify-center">
             <div className="p-4 w-full sm:w-48">
               <Button
-                onClick={onCheckPasskey}
-                variant="primary"
-                size="default"
-                disabled={false}
-              >
-                パスキーログイン
-              </Button>
-            </div>
-          </div>
-          <div className="flex justify-center">
-            <div className="p-4 w-full sm:w-48">
-              <Button
                 onClick={onLogout}
                 variant="danger"
                 size="default"
@@ -196,29 +148,12 @@ const Home = ({ session }: Props) => {
     );
   }
 
-  return (
-    <>
-      <div className="p-4">
-        <span className="text-2xl font-bold mb-4">TOP</span>
-        <div className="flex justify-center">
-          <div className="p-4 w-full sm:w-48">
-            <Button
-              onClick={onLogin}
-              variant="primary"
-              size="default"
-              disabled={false}
-            >
-              Login
-            </Button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+  return <></>;
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession({ req: context.req });
+
   return {
     props: {
       session,

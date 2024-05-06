@@ -51,9 +51,7 @@ const LoginPage = () => {
       return;
     }
 
-    const parsedOptions = parseRequestOptionsFromJSON({
-      publicKey: options.publicKey,
-    });
+    const parsedOptions = parseRequestOptionsFromJSON({ publicKey: options });
 
     const credentials = await get(parsedOptions);
 

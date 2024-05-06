@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
@@ -19,17 +18,23 @@ import (
 type AuthenticateWebauthnUsecase struct {
 	oauth2   fosite.OAuth2Provider
 	webauthn webauthn.WebAuthn
+	ur       repository.IUserRepository
+	wcr      repository.IWebauthnCredentialRepository
 	lssr     repository.ILoginSkipSessionRepository
 }
 
 func NewAuthenticateWebauthnUsecase(
 	oauth2 fosite.OAuth2Provider,
 	webauthn webauthn.WebAuthn,
+	ur repository.IUserRepository,
+	wcr repository.IWebauthnCredentialRepository,
 	lssr repository.ILoginSkipSessionRepository,
 ) AuthenticateWebauthnUsecase {
 	return AuthenticateWebauthnUsecase{
 		oauth2:   oauth2,
 		webauthn: webauthn,
+		ur:       ur,
+		wcr:      wcr,
 		lssr:     lssr,
 	}
 }
@@ -40,42 +45,10 @@ func (w *AuthenticateWebauthnUsecase) Start(c echo.Context) error {
 	tx := db.Begin()
 	defer tx.Rollback()
 
-	u := models.User{}
-	result := tx.
-		Where("username = ?", "test@example.com").
-		First(&u)
-	if result.Error != nil {
-		return result.Error
-	}
-
-	wu := models.WebauthnUser{}
-	result = tx.
-		Preload("Credentials").
-		Where("id = ?", u.UserID).
-		First(&wu)
-	if result.Error != nil {
-		if result.Error.Error() != "record not found" {
-			return result.Error
-		}
-	}
-
-	allowList := make([]protocol.CredentialDescriptor, len(wu.Credentials))
-	for i := range wu.Credentials {
-		wc := wu.Credentials[i].ToWebauthnCredential()
-
-		allowList[i] = protocol.CredentialDescriptor{
-			Type:         protocol.PublicKeyCredentialType,
-			CredentialID: wc.Descriptor().CredentialID,
-			Transport:    []protocol.AuthenticatorTransport{"usb", "internal", "hybrid", "ble", "nfc"},
-		}
-	}
-
-	options, sd, err := w.webauthn.BeginLogin(
-		wu,
-		webauthn.WithAllowedCredentials(allowList),
+	options, sd, err := w.webauthn.BeginDiscoverableLogin(
 		webauthn.WithUserVerification(protocol.VerificationRequired),
-		webauthn.WithAppIdExtension(""),
 	)
+
 	if err != nil {
 		return err
 	}
@@ -95,7 +68,7 @@ func (w *AuthenticateWebauthnUsecase) Start(c echo.Context) error {
 
 	tx.Commit()
 
-	return c.JSON(200, options)
+	return c.JSON(200, options.Response)
 }
 
 func (w *AuthenticateWebauthnUsecase) Finish(c echo.Context) error {
@@ -109,28 +82,30 @@ func (w *AuthenticateWebauthnUsecase) Finish(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "session data not found")
 	}
 
-	db := gateway.Connect()
+	discoverableUserHandler := func(_, userHandle []byte) (webauthn.User, error) {
+		user, err := w.ur.FindByUserID(string(userHandle))
+		if err != nil {
+			return nil, err
+		}
+		wu := models.NewWebauthnUser(user.UserID, user.Username)
+		wc, err := w.wcr.FindByUserID(user.UserID)
+		if err != nil {
+			return nil, err
+		}
 
-	u := models.User{}
-	result := db.
-		Where("username = ?", "test@example.com").
-		First(&u)
-	if result.Error != nil {
-		return result.Error
+		for _, c := range wc {
+			wu.AddCredential(*c.To())
+		}
+
+		return wu, nil
 	}
 
-	wu := models.WebauthnUser{}
-	result = db.
-		Preload("Credentials").
-		Where("id = ?", u.UserID).
-		First(&wu)
-	if result.Error != nil {
-		db.Rollback()
-		log.Printf("Error finding user: %+v\n", result.Error)
-		return result.Error
+	parsedResponse, err := protocol.ParseCredentialRequestResponse(c.Request())
+	if err != nil {
+		return err
 	}
 
-	_, err = w.webauthn.FinishLogin(wu, *sd, c.Request())
+	_, err = w.webauthn.ValidateDiscoverableLogin(discoverableUserHandler, *sd, parsedResponse)
 	if err != nil {
 		return err
 	}
@@ -140,10 +115,11 @@ func (w *AuthenticateWebauthnUsecase) Finish(c echo.Context) error {
 		return err
 	}
 
-	lss := models.NewLoginSkipSession(u.UserID)
+	userID := string(parsedResponse.Response.UserHandle)
+
+	lss := models.NewLoginSkipSession(userID)
 	err = w.lssr.Save(lss)
 	if err != nil {
-		log.Printf("Error saving login skip session: %+v\n", result)
 		return err
 	}
 

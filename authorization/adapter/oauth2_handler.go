@@ -7,15 +7,14 @@ import (
 )
 
 type Oauth2Handler struct {
-	au  usecase.AuthorizationUsecase
-	tu  usecase.TokenUsecase
-	iu  usecase.IntrospectUsecase
-	ju  usecase.JWKUsecase
-	ru  usecase.RevokeUsecase
-	lu  usecase.LogoutUsecase
-	su  usecase.SessionUsecase
-	wu  usecase.AuthenticateWebauthnUsecase
-	wlu usecase.RegisterWebauthnUsecase
+	au usecase.AuthorizationUsecase
+	tu usecase.TokenUsecase
+	iu usecase.IntrospectUsecase
+	ju usecase.JWKUsecase
+	ru usecase.RevokeUsecase
+	lu usecase.LogoutUsecase
+	su usecase.SessionUsecase
+	wu usecase.AuthenticateWebauthnUsecase
 }
 
 func NewOauth2Handler(
@@ -28,18 +27,16 @@ func NewOauth2Handler(
 	lu usecase.LogoutUsecase,
 	su usecase.SessionUsecase,
 	awu usecase.AuthenticateWebauthnUsecase,
-	rwu usecase.RegisterWebauthnUsecase,
 ) {
 	handler := &Oauth2Handler{
-		au:  au,
-		tu:  tu,
-		iu:  iu,
-		ju:  ju,
-		ru:  ru,
-		lu:  lu,
-		su:  su,
-		wu:  awu,
-		wlu: rwu,
+		au: au,
+		tu: tu,
+		iu: iu,
+		ju: ju,
+		ru: ru,
+		lu: lu,
+		su: su,
+		wu: awu,
 	}
 
 	e.GET("/oauth2/auth", handler.au.Invoke)
