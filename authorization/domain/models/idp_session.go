@@ -24,7 +24,7 @@ type IdpSession struct {
 	LoginSkipToken string                         `json:"login_skip_token"`
 }
 
-func NewIdpSession(clientId, userId string) *IdpSession {
+func NewIdpSession(clientId string, user User) *IdpSession {
 	header := &jwt.Headers{
 		Extra: make(map[string]interface{}),
 	}
@@ -33,17 +33,18 @@ func NewIdpSession(clientId, userId string) *IdpSession {
 	claims := &jwt.IDTokenClaims{
 		Issuer:      "go-idp",
 		Audience:    []string{clientId},
-		Subject:     userId,
+		Subject:     user.UserID,
 		IssuedAt:    time.Now(),
 		RequestedAt: time.Now(),
 		AuthTime:    time.Now(),
 	}
 	claims.Add("azp", "go-idp")
+	claims.Add("email", user.Username)
 
 	return &IdpSession{
 		Claims:  claims,
 		Headers: header,
-		Subject: userId,
+		Subject: user.UserID,
 	}
 }
 

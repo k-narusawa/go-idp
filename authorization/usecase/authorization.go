@@ -90,7 +90,7 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		}
 
 		clientId := ar.GetClient().GetID()
-		idpSession := models.NewIdpSession(clientId, user.UserID)
+		idpSession := models.NewIdpSession(clientId, *user)
 
 		ar.SetResponseTypeHandled("code")
 		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, idpSession)
@@ -132,7 +132,12 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		}
 
 		clientId := ar.GetClient().GetID()
-		idpSession := models.NewIdpSession(clientId, lss.UserID)
+		user, err := a.ur.FindByUserID(lss.UserID)
+		if err != nil {
+			msg := "unexpected error occurred."
+			return c.Render(http.StatusOK, "login.html", msg)
+		}
+		idpSession := models.NewIdpSession(clientId, *user)
 
 		ar.SetResponseTypeHandled("code")
 		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, idpSession)

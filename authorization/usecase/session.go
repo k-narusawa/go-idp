@@ -10,15 +10,18 @@ import (
 )
 
 type SessionUsecase struct {
+	ur   repository.IUserRepository
 	isr  repository.IIdpSessionRepository
 	lssr repository.ILoginSkipSessionRepository
 }
 
 func NewSessionUsecase(
+	ur repository.IUserRepository,
 	isr repository.IIdpSessionRepository,
 	lssr repository.ILoginSkipSessionRepository,
 ) SessionUsecase {
 	return SessionUsecase{
+		ur:   ur,
 		isr:  isr,
 		lssr: lssr,
 	}
@@ -62,8 +65,13 @@ func (s *SessionUsecase) SkipLogin(c echo.Context) error {
 		params.Add("nonce", nonce)
 	}
 
+	user, err := s.ur.FindByUserID(lss.UserID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/error")
+	}
+
 	redirectTo.RawQuery = params.Encode()
-	idpSession := models.NewIdpSession(clientId, lss.UserID)
+	idpSession := models.NewIdpSession(clientId, *user)
 	idpSession.SetLoginSkipToken(token)
 
 	s.isr.Save(c, idpSession)
