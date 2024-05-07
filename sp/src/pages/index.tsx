@@ -34,7 +34,7 @@ const Home = ({ session }: Props) => {
 
   const onPasskey = async () => {
     const options = await axios
-      .get("/api/resources/webauthn")
+      .get("/api/resources/users/registrations/webauthn/options")
       .then((response) => {
         return response.data;
       })
@@ -51,11 +51,15 @@ const Home = ({ session }: Props) => {
     const parsedOptions = parseCreationOptionsFromJSON({ publicKey: options });
     const response = await create(parsedOptions);
     await axios
-      .post("/api/resources/webauthn", response.toJSON(), {
-        params: {
-          challenge: challenge,
-        },
-      })
+      .post(
+        "/api/resources/users/registrations/webauthn/result",
+        response.toJSON(),
+        {
+          params: {
+            challenge: challenge,
+          },
+        }
+      )
       .then(() => {
         setSuccess(true);
       })
