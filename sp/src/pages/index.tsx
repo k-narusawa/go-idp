@@ -10,6 +10,7 @@ import { Toast } from "@/components/common/Toast";
 import { useEffect, useState } from "react";
 import { AccountCard } from "@/components/pages/top/AccountCard";
 import { PasskeyCard } from "@/components/pages/top/PasskeyCard";
+import { Header } from "@/components/common/Header";
 
 type Props = {
   email: string | null;
@@ -86,32 +87,16 @@ const Home = ({ email, passkeys }: Props) => {
   if (email) {
     return (
       <>
-        <div className="p-4">
-          <span className="text-2xl font-bold mb-4">TOP</span>
+        <Header onLogout={onLogout} />
+        <AccountCard email={email} />
 
-          <AccountCard email={email} />
+        <div className="p-4" />
 
-          <div className="p-4" />
-
-          <PasskeyCard
-            passkeys={passkeys}
-            onRegister={onPasskey}
-            onDelete={onDelete}
-          />
-
-          <div className="flex justify-center">
-            <div className="p-4 w-full sm:w-48">
-              <Button
-                onClick={onLogout}
-                variant="danger"
-                size="default"
-                disabled={false}
-              >
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
+        <PasskeyCard
+          passkeys={passkeys}
+          onRegister={onPasskey}
+          onDelete={onDelete}
+        />
       </>
     );
   }
