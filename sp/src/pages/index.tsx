@@ -1,6 +1,5 @@
 import { getSession, signIn, signOut } from "next-auth/react";
 import { GetServerSideProps } from "next";
-import { Session } from "next-auth";
 import { Button } from "@/components/common/Button";
 import axios from "axios";
 import {
@@ -9,24 +8,22 @@ import {
 } from "@github/webauthn-json/browser-ponyfill";
 import { Toast } from "@/components/common/Toast";
 import { useEffect, useState } from "react";
-import { Card } from "@/components/common/Card";
-import { HorizontalLine } from "@/components/common/HorizontalLine";
-import { profile } from "console";
 import { AccountCard } from "@/components/pages/top/AccountCard";
+import { PasskeyCard } from "@/components/pages/top/PasskeyCard";
 
 type Props = {
-  session: Session | null;
+  email: string | null;
+  passkeys: PasskeyResponse | null;
 };
 
-const Home = ({ session }: Props) => {
-  const [success, setSuccess] = useState<boolean>(false);
+const Home = ({ email, passkeys }: Props) => {
   const [error, setError] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!session) {
+    if (!email) {
       signIn("go-idp");
     }
-  }, [session]);
+  }, [email]);
 
   const onLogout = () => {
     signOut({ callbackUrl: "signOut", redirect: true });
@@ -60,49 +57,48 @@ const Home = ({ session }: Props) => {
           },
         }
       )
-      .then(() => {
-        setSuccess(true);
-      })
       .catch((error) => {
         console.error(error);
         setError(true);
       });
+    if (error) {
+      return;
+    }
+    window.location.reload();
   };
 
-  if (session) {
+  const onDelete = async (id: string) => {
+    await axios
+      .delete(`/api/resources/users/webauthn`, {
+        params: {
+          id: id,
+        },
+      })
+      .then((response) => response.data)
+      .catch((error) => {
+        console.error(error);
+        return null;
+      });
+
+    window.location.reload();
+  };
+
+  if (email) {
     return (
       <>
-        {success && (
-          <Toast
-            message="パスキー登録成功"
-            type="success"
-            onClose={() => setSuccess(false)}
-          />
-        )}
-        {error && (
-          <Toast
-            message="パスキー登録失敗"
-            type="danger"
-            onClose={() => setError(false)}
-          />
-        )}
         <div className="p-4">
           <span className="text-2xl font-bold mb-4">TOP</span>
 
-          <AccountCard email={session.email} />
+          <AccountCard email={email} />
 
-          <div className="flex justify-center">
-            <div className="p-4 w-full sm:w-48">
-              <Button
-                onClick={onPasskey}
-                variant="primary"
-                size="default"
-                disabled={false}
-              >
-                パスキー登録
-              </Button>
-            </div>
-          </div>
+          <div className="p-4" />
+
+          <PasskeyCard
+            passkeys={passkeys}
+            onRegister={onPasskey}
+            onDelete={onDelete}
+          />
+
           <div className="flex justify-center">
             <div className="p-4 w-full sm:w-48">
               <Button
@@ -128,9 +124,30 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   console.log(session?.accessToken);
   console.log(session?.refreshToken);
 
+  const apiResponse = await axios
+    .get(`${process.env.IDP_URL}/resources/users/webauthn`, {
+      headers: {
+        Authorization: `Bearer ${session?.accessToken}`,
+      },
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      console.error(error);
+      return null;
+    });
+
+  if (!apiResponse) {
+    return {
+      props: {
+        session: null,
+      },
+    };
+  }
+
   return {
     props: {
-      session,
+      email: session?.email,
+      passkeys: apiResponse,
     },
   };
 };

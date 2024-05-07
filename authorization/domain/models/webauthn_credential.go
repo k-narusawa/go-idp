@@ -40,7 +40,7 @@ func (c *WebauthnCredential) To() *webauthn.Credential {
 	}
 
 	return &webauthn.Credential{
-		ID:              []byte(c.ID),
+		ID:              c.ID,
 		PublicKey:       c.PublicKey,
 		AttestationType: c.AttestationType,
 		Transport:       transport,

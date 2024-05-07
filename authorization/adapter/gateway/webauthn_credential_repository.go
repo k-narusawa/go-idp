@@ -40,3 +40,11 @@ func (r *WebauthnCredentialRepository) Save(credential *models.WebauthnCredentia
 	}
 	return nil
 }
+
+func (r *WebauthnCredentialRepository) DeleteByID(id []byte) error {
+	result := r.db.Where("id = ?", id).Delete(&models.WebauthnCredential{})
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}

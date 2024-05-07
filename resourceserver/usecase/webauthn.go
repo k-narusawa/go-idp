@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
 	"github.com/k-narusawa/go-idp/authorization/domain/repository"
 	rm "github.com/k-narusawa/go-idp/resourceserver/domain/models"
@@ -161,29 +160,25 @@ type WebauthnResponseItem struct {
 }
 
 func (w *WebauthnUsecase) Delete(c echo.Context) error {
-	ir := c.Get(("ir")).(rm.IntrospectResponse)
+	// ir := c.Get(("ir")).(rm.IntrospectResponse)
 
-	db := gateway.Connect()
-	tx := db.Begin()
-	defer tx.Rollback()
+	id := c.Param("id")
 
-	wu := models.WebauthnUser{}
-	result := tx.
-		Preload("Credentials").
-		Where("name = ?", ir.Sub).
-		First(&wu)
-	if result.Error != nil {
-		tx.Rollback()
-		return result.Error
+	// uuid形式の文字列をuuidに変換
+	uuid, err := uuid.Parse(id)
+	if err != nil {
+		return err
 	}
 
-	result = tx.Delete(&wu.Credentials)
-	if result.Error != nil {
-		tx.Rollback()
-		return result.Error
+	bytes, err := uuid.MarshalBinary()
+	if err != nil {
+		return err
 	}
 
-	tx.Commit()
+	err = w.wcr.DeleteByID(bytes)
+	if err != nil {
+		return err
+	}
 
 	return c.NoContent(http.StatusNoContent)
 }
