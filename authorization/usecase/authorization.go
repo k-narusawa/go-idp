@@ -39,6 +39,15 @@ func NewAuthorization(
 }
 
 func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
+	defer func() {
+		// パニック発生時にセッションを削除できるようにしておく
+		if r := recover(); r != nil {
+			log.Printf("Recovered in Invoke: %+v", r)
+			c.Render(http.StatusOK, "login.html", nil)
+		}
+		a.isr.Delete(c)
+	}()
+
 	rw := c.Response()
 	req := c.Request()
 
