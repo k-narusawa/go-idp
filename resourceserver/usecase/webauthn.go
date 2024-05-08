@@ -63,6 +63,7 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 		wu,
 		webauthn.WithAuthenticatorSelection(authSelect),
 		webauthn.WithConveyancePreference(conveyancePref),
+		webauthn.WithExclusions(wu.CredentialExcludeList()),
 	)
 
 	if err != nil {
@@ -132,10 +133,11 @@ func (w *WebauthnUsecase) Get(c echo.Context) error {
 	}
 
 	for i, cred := range credentials {
-		id, err := uuid.FromBytes(cred.ID)
-		if err != nil {
-			return err
-		}
+		id, _ := uuid.FromBytes(cred.ID)
+		// idがたまに変なことがあるので、一旦コメントアウト
+		// if err != nil {
+		// 	return err
+		// }
 
 		aaguid, _ := uuid.FromBytes(cred.Authenticator.AAGUID)
 

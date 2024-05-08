@@ -54,13 +54,13 @@ func (wu WebauthnUser) WebAuthnCredentials() []webauthn.Credential {
 func (wu WebauthnUser) CredentialExcludeList() []protocol.CredentialDescriptor {
 
 	credentialExcludeList := []protocol.CredentialDescriptor{}
-	// for _, cred := range wu.Credentials {
-	// 	descriptor := protocol.CredentialDescriptor{
-	// 		Type:         protocol.PublicKeyCredentialType,
-	// 		CredentialID: cred.ID,
-	// 	}
-	// 	credentialExcludeList = append(credentialExcludeList, descriptor)
-	// }
+	for _, cred := range wu.Credentials {
+		descriptor := protocol.CredentialDescriptor{
+			Type:         protocol.PublicKeyCredentialType,
+			CredentialID: cred.ID,
+		}
+		credentialExcludeList = append(credentialExcludeList, descriptor)
+	}
 
 	return credentialExcludeList
 }
