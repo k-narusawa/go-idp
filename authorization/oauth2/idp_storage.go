@@ -225,7 +225,9 @@ func (s *IdpStorage) GetRefreshTokenSession(ctx context.Context, signature strin
 	db := gateway.Connect()
 
 	var rt models.RefreshToken
-	result := db.Where("signature=?", signature).First(&rt)
+	result := db.
+		Preload("Client").
+		Where("signature=?", signature).First(&rt)
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
