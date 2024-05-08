@@ -13,6 +13,7 @@ import (
 
 type AuthorizationCode struct {
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
+	RequestID         string    `gorm:"type:varchar(40);not null"`
 	ClientID          string    `gorm:"type:varchar(255);not null"`
 	Client            Client    `gorm:"foreignKey:ClientID;"`
 	RequestedAt       time.Time `gorm:"type:timestamp;not null"`
@@ -27,11 +28,11 @@ type AuthorizationCode struct {
 }
 
 func (ac *AuthorizationCode) SetID(id string) {
-	ac.ClientID = id
+	ac.RequestID = id
 }
 
 func (ac *AuthorizationCode) GetID() string {
-	return ac.ClientID
+	return ac.RequestID
 }
 
 func (ac *AuthorizationCode) GetClient() fosite.Client {
@@ -132,6 +133,7 @@ func AuthorizationCodeOf(signature string, requester fosite.Requester) *Authoriz
 
 	return &AuthorizationCode{
 		Signature:         signature,
+		RequestID:         requester.GetID(),
 		ClientID:          requester.GetClient().GetID(),
 		RequestedAt:       requester.GetRequestedAt(),
 		Scope:             strings.Join(requester.GetRequestedScopes(), " "),
@@ -147,6 +149,7 @@ func AuthorizationCodeOf(signature string, requester fosite.Requester) *Authoriz
 func (ac *AuthorizationCode) ToRequester() fosite.Requester {
 	return &AuthorizationCode{
 		Signature:         ac.Signature,
+		RequestID:         ac.RequestID,
 		ClientID:          ac.ClientID,
 		Client:            ac.Client,
 		RequestedAt:       ac.RequestedAt,

@@ -13,6 +13,7 @@ import (
 
 type OidcSession struct {
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
+	RequestID         string    `gorm:"type:varchar(40);not null"`
 	ClientID          string    `gorm:"type:varchar(255);not null"`
 	Client            Client    `gorm:"foreignKey:ClientID"`
 	RequestedAt       time.Time `gorm:"type:timestamp;not null"`
@@ -27,11 +28,11 @@ type OidcSession struct {
 }
 
 func (is *OidcSession) SetID(id string) {
-	is.ClientID = id
+	is.RequestID = id
 }
 
 func (is *OidcSession) GetID() string {
-	return is.ClientID
+	return is.RequestID
 }
 
 func (is *OidcSession) GetRequestedAt() time.Time {
@@ -128,6 +129,7 @@ func IDSessionOf(signature string, requester fosite.Requester) *OidcSession {
 
 	return &OidcSession{
 		Signature:         signature,
+		RequestID:         requester.GetID(),
 		ClientID:          requester.GetClient().GetID(),
 		RequestedAt:       requester.GetRequestedAt(),
 		Scope:             strings.Join(requester.GetRequestedScopes(), " "),
@@ -143,6 +145,7 @@ func IDSessionOf(signature string, requester fosite.Requester) *OidcSession {
 func (is *OidcSession) ToRequester() fosite.Requester {
 	return &OidcSession{
 		Signature:         is.Signature,
+		RequestID:         is.RequestID,
 		ClientID:          is.ClientID,
 		Client:            is.Client,
 		RequestedAt:       is.RequestedAt,

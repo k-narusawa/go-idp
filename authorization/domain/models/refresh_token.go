@@ -12,6 +12,7 @@ import (
 
 type RefreshToken struct {
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
+	RequestID         string    `gorm:"type:varchar(40);not null"`
 	ClientID          string    `gorm:"type:varchar(255);not null"`
 	Client            Client    `gorm:"foreignKey:ClientID"`
 	RequestedAt       time.Time `gorm:"type:timestamp;not null"`
@@ -26,11 +27,11 @@ type RefreshToken struct {
 }
 
 func (rt *RefreshToken) SetID(id string) {
-	rt.ClientID = id
+	rt.RequestID = id
 }
 
 func (rt *RefreshToken) GetID() string {
-	return rt.ClientID
+	return rt.RequestID
 }
 
 func (rt *RefreshToken) GetRequestedAt() time.Time {
@@ -127,6 +128,7 @@ func RefreshTokenOf(signature string, requester fosite.Requester) *RefreshToken 
 
 	return &RefreshToken{
 		Signature:         signature,
+		RequestID:         requester.GetID(),
 		ClientID:          requester.GetClient().GetID(),
 		RequestedAt:       requester.GetRequestedAt(),
 		Scope:             strings.Join(requester.GetRequestedScopes(), " "),
@@ -142,6 +144,7 @@ func RefreshTokenOf(signature string, requester fosite.Requester) *RefreshToken 
 func (rt *RefreshToken) ToRequester() fosite.Requester {
 	return &RefreshToken{
 		Signature:         rt.Signature,
+		RequestID:         rt.RequestID,
 		ClientID:          rt.ClientID,
 		Client:            rt.Client,
 		RequestedAt:       rt.RequestedAt,

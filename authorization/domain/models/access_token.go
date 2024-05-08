@@ -12,6 +12,7 @@ import (
 
 type AccessToken struct {
 	Signature         string    `gorm:"type:varchar(255);not null;unique" `
+	RequestID         string    `gorm:"type:varchar(40);not null"`
 	ClientID          string    `gorm:"type:varchar(255);not null"`
 	Client            Client    `gorm:"foreignKey:ClientID"`
 	RequestedAt       time.Time `gorm:"type:timestamp;not null"`
@@ -26,11 +27,11 @@ type AccessToken struct {
 }
 
 func (at *AccessToken) SetID(id string) {
-	at.ClientID = id
+	at.RequestID = id
 }
 
 func (at *AccessToken) GetID() string {
-	return at.ClientID
+	return at.RequestID
 }
 
 func (at *AccessToken) GetRequestedAt() time.Time {
@@ -131,6 +132,7 @@ func AccessTokenOf(signature string, requester fosite.Requester) *AccessToken {
 
 	return &AccessToken{
 		Signature:         signature,
+		RequestID:         requester.GetID(),
 		ClientID:          requester.GetClient().GetID(),
 		RequestedAt:       requester.GetRequestedAt(),
 		Scope:             strings.Join(requester.GetRequestedScopes(), " "),
@@ -146,6 +148,7 @@ func AccessTokenOf(signature string, requester fosite.Requester) *AccessToken {
 func (at *AccessToken) ToRequester() fosite.Requester {
 	return &AccessToken{
 		Signature:         at.Signature,
+		RequestID:         at.RequestID,
 		ClientID:          at.ClientID,
 		Client:            at.Client,
 		RequestedAt:       at.RequestedAt,
