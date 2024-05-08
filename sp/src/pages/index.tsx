@@ -9,15 +9,26 @@ import { useEffect, useState } from "react";
 import { AccountCard } from "@/components/pages/top/AccountCard";
 import { PasskeyCard } from "@/components/pages/top/PasskeyCard";
 import { Header } from "@/components/common/Header";
+import { SessionCard } from "@/components/pages/top/SessionCard";
+import { Toast } from "@/components/common/Toast";
 
 type Props = {
+  accessToken: string;
+  refreshToken: string;
   email: string | null;
   passkeys: PasskeyResponse | null;
   sessionExpired: boolean;
 };
 
-const Home = ({ email, passkeys, sessionExpired }: Props) => {
+const Home = ({
+  accessToken,
+  refreshToken,
+  email,
+  passkeys,
+  sessionExpired,
+}: Props) => {
   const [error, setError] = useState<boolean>(false);
+  const [copyComplete, setCopyComplete] = useState<boolean>(false);
 
   useEffect(() => {
     if (sessionExpired) {
@@ -87,6 +98,16 @@ const Home = ({ email, passkeys, sessionExpired }: Props) => {
     window.location.reload();
   };
 
+  const copyAccessToken = async () => {
+    await navigator.clipboard.writeText(accessToken);
+    setCopyComplete(true);
+  };
+
+  const copyRefreshToken = async () => {
+    await navigator.clipboard.writeText(refreshToken);
+    setCopyComplete(true);
+  };
+
   if (email) {
     return (
       <>
@@ -95,11 +116,28 @@ const Home = ({ email, passkeys, sessionExpired }: Props) => {
 
         <div className="p-4" />
 
+        <SessionCard
+          copyAccessToken={copyAccessToken}
+          copyRefreshToken={copyRefreshToken}
+        />
+
+        <div className="p-4" />
+
         <PasskeyCard
           passkeys={passkeys}
           onRegister={onPasskey}
           onDelete={onDelete}
         />
+
+        {copyComplete && (
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-center">
+            <Toast
+              message="Copied to clipboard"
+              type="success"
+              onClose={() => setCopyComplete(false)}
+            />
+          </div>
+        )}
       </>
     );
   }
@@ -131,6 +169,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     );
     return {
       props: {
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
         email: session.email,
         passkeys: resp.data,
         sessionExpired: false,

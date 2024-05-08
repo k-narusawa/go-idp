@@ -10,11 +10,9 @@ export const Toast = ({ ...props }: ToastProps) => {
   const [isVisible, setIsVisible] = useState(true);
 
   const iconColors = {
-    success:
-      "text-green bg-green-light dark:bg-green-dark dark:text-green-light",
-    danger: "text-red bg-red-light dark:bg-red-dark dark:text-red-light",
-    warning:
-      "text-orange bg-orange-light dark:bg-orange-dark dark:text-orange-light",
+    success: "text-green  dark:bg-green-dark dark:text-green-light",
+    danger: "text-red dark:bg-red-dark dark:text-red-light",
+    warning: "text-orange dark:bg-orange-dark dark:text-orange-light",
   };
 
   if (!isVisible) return null;
