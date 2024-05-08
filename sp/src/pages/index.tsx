@@ -1,12 +1,10 @@
 import { getSession, signIn, signOut } from "next-auth/react";
 import { GetServerSideProps } from "next";
-import { Button } from "@/components/common/Button";
 import axios from "axios";
 import {
   create,
   parseCreationOptionsFromJSON,
 } from "@github/webauthn-json/browser-ponyfill";
-import { Toast } from "@/components/common/Toast";
 import { useEffect, useState } from "react";
 import { AccountCard } from "@/components/pages/top/AccountCard";
 import { PasskeyCard } from "@/components/pages/top/PasskeyCard";
@@ -15,16 +13,21 @@ import { Header } from "@/components/common/Header";
 type Props = {
   email: string | null;
   passkeys: PasskeyResponse | null;
+  sessionExpired: boolean;
 };
 
-const Home = ({ email, passkeys }: Props) => {
+const Home = ({ email, passkeys, sessionExpired }: Props) => {
   const [error, setError] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!email) {
+    if (sessionExpired) {
+      onLogout();
+    }
+
+    if (!email && !passkeys) {
       signIn("go-idp");
     }
-  }, [email]);
+  }, [email, passkeys, sessionExpired]);
 
   const onLogout = () => {
     signOut({ callbackUrl: "signOut", redirect: true });
@@ -109,32 +112,37 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   console.log(session?.accessToken);
   console.log(session?.refreshToken);
 
-  const apiResponse = await axios
-    .get(`${process.env.IDP_URL}/resources/users/webauthn`, {
-      headers: {
-        Authorization: `Bearer ${session?.accessToken}`,
-      },
-    })
-    .then((response) => response.data)
-    .catch((error) => {
-      console.error(error);
-      return null;
-    });
-
-  if (!apiResponse) {
+  if (!session) {
     return {
       props: {
-        session: null,
+        sessionExpired: true,
       },
     };
   }
 
-  return {
-    props: {
-      email: session?.email,
-      passkeys: apiResponse,
-    },
-  };
+  try {
+    const resp = await axios.get(
+      `${process.env.IDP_URL}/resources/users/webauthn`,
+      {
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+      }
+    );
+    return {
+      props: {
+        email: session.email,
+        passkeys: resp.data,
+        sessionExpired: false,
+      },
+    };
+  } catch (error) {
+    return {
+      props: {
+        sessionExpired: true,
+      },
+    };
+  }
 };
 
 export default Home;
