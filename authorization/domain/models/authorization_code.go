@@ -21,7 +21,7 @@ type AuthorizationCode struct {
 	GrantedScope      string    `gorm:"type:varchar(255);not null"`
 	FormData          string    `gorm:"type:text;not null"`
 	SessionData       string    `gorm:"type:text;not null"`
-	Subject           string    `gorm:"type:text;not null"`
+	Subject           string    `gorm:"type:varchar(40);not null"`
 	Active            bool      `gorm:"type:boolean;not null"`
 	RequestedAudience string    `gorm:"type:varchar(255);not null"`
 	GrantedAudience   string    `gorm:"type:varchar(255);not null"`
@@ -139,10 +139,11 @@ func AuthorizationCodeOf(signature string, requester fosite.Requester) *Authoriz
 		Scope:             strings.Join(requester.GetRequestedScopes(), " "),
 		GrantedScope:      strings.Join(requester.GetGrantedScopes(), " "),
 		FormData:          requester.GetRequestForm().Encode(),
+		SessionData:       string(jsonData),
+		Subject:           requester.GetSession().GetSubject(),
 		Active:            true,
 		RequestedAudience: strings.Join(requester.GetRequestedAudience(), " "),
 		GrantedAudience:   strings.Join(requester.GetGrantedAudience(), " "),
-		SessionData:       string(jsonData),
 	}
 }
 
@@ -156,9 +157,10 @@ func (ac *AuthorizationCode) ToRequester() fosite.Requester {
 		Scope:             ac.Scope,
 		GrantedScope:      ac.GrantedScope,
 		FormData:          ac.FormData,
+		SessionData:       ac.SessionData,
+		Subject:           ac.Subject,
 		Active:            ac.Active,
 		RequestedAudience: ac.RequestedAudience,
 		GrantedAudience:   ac.GrantedAudience,
-		SessionData:       ac.SessionData,
 	}
 }

@@ -20,7 +20,7 @@ type AccessToken struct {
 	GrantedScope      string    `gorm:"type:varchar(255);not null"`
 	FormData          string    `gorm:"type:text;not null"`
 	SessionData       string    `gorm:"type:text;not null"`
-	Subject           string    `gorm:"type:text;not null"`
+	Subject           string    `gorm:"type:varchar(40);not null"`
 	Active            bool      `gorm:"type:boolean;not null"`
 	RequestedAudience string    `gorm:"type:varchar(255);not null"`
 	GrantedAudience   string    `gorm:"type:varchar(255);not null"`
@@ -139,9 +139,10 @@ func AccessTokenOf(signature string, requester fosite.Requester) *AccessToken {
 		GrantedScope:      strings.Join(requester.GetGrantedScopes(), " "),
 		FormData:          requester.GetRequestForm().Encode(),
 		Active:            true,
+		SessionData:       string(jsonData),
+		Subject:           requester.GetSession().GetSubject(),
 		RequestedAudience: strings.Join(requester.GetRequestedAudience(), " "),
 		GrantedAudience:   strings.Join(requester.GetGrantedAudience(), " "),
-		SessionData:       string(jsonData),
 	}
 }
 
@@ -156,8 +157,9 @@ func (at *AccessToken) ToRequester() fosite.Requester {
 		GrantedScope:      at.GrantedScope,
 		FormData:          at.FormData,
 		Active:            at.Active,
+		SessionData:       at.SessionData,
+		Subject:           at.Subject,
 		RequestedAudience: at.RequestedAudience,
 		GrantedAudience:   at.GrantedAudience,
-		SessionData:       at.SessionData,
 	}
 }

@@ -20,7 +20,7 @@ type RefreshToken struct {
 	GrantedScope      string    `gorm:"type:varchar(255);not null"`
 	FormData          string    `gorm:"type:text;not null"`
 	SessionData       string    `gorm:"type:varchar(255);not null"`
-	Subject           string    `gorm:"type:text;not null"`
+	Subject           string    `gorm:"type:varchar(40);not null"`
 	Active            bool      `gorm:"type:boolean;not null"`
 	RequestedAudience string    `gorm:"type:varchar(255);not null"`
 	GrantedAudience   string    `gorm:"type:varchar(255);not null"`
@@ -134,10 +134,11 @@ func RefreshTokenOf(signature string, requester fosite.Requester) *RefreshToken 
 		Scope:             strings.Join(requester.GetRequestedScopes(), " "),
 		GrantedScope:      strings.Join(requester.GetGrantedScopes(), " "),
 		FormData:          requester.GetRequestForm().Encode(),
+		SessionData:       string(jsonData),
+		Subject:           requester.GetSession().GetSubject(),
 		Active:            true,
 		RequestedAudience: strings.Join(requester.GetRequestedAudience(), " "),
 		GrantedAudience:   strings.Join(requester.GetGrantedAudience(), " "),
-		SessionData:       string(jsonData),
 	}
 }
 
@@ -151,9 +152,10 @@ func (rt *RefreshToken) ToRequester() fosite.Requester {
 		Scope:             rt.Scope,
 		GrantedScope:      rt.GrantedScope,
 		FormData:          rt.FormData,
+		SessionData:       rt.SessionData,
+		Subject:           rt.Subject,
 		Active:            rt.Active,
 		RequestedAudience: rt.RequestedAudience,
 		GrantedAudience:   rt.GrantedAudience,
-		SessionData:       rt.SessionData,
 	}
 }
