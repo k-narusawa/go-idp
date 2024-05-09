@@ -9,7 +9,6 @@ import (
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
-	fositeoauth2 "github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/token/hmac"
 	"github.com/ory/fosite/token/jwt"
 	"gopkg.in/yaml.v2"
@@ -63,7 +62,7 @@ func NewOauth2Provider(privateKey *rsa.PrivateKey) fosite.OAuth2Provider {
 			GlobalSecret:               secret,
 		}
 
-		oAuth2HMACStrategy = &fositeoauth2.HMACSHAStrategy{
+		oAuth2HMACStrategy = &HMACSHAStrategy{
 			Enigma: hmacStrategy,
 			Config: config,
 		}
