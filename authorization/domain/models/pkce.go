@@ -135,10 +135,11 @@ func PKCEOf(signature string, requester fosite.Requester) *PKCE {
 		Scope:             strings.Join(requester.GetRequestedScopes(), " "),
 		GrantedScope:      strings.Join(requester.GetGrantedScopes(), " "),
 		FormData:          requester.GetRequestForm().Encode(),
+		SessionData:       string(jsonData),
+		Subject:           requester.GetSession().GetSubject(),
 		Active:            true,
 		RequestedAudience: strings.Join(requester.GetRequestedAudience(), " "),
 		GrantedAudience:   strings.Join(requester.GetGrantedAudience(), " "),
-		SessionData:       string(jsonData),
 	}
 }
 
@@ -152,9 +153,10 @@ func (p *PKCE) ToRequester() fosite.Requester {
 		Scope:             p.Scope,
 		GrantedScope:      p.GrantedScope,
 		FormData:          p.FormData,
+		SessionData:       p.SessionData,
+		Subject:           p.Subject,
 		Active:            p.Active,
 		RequestedAudience: p.RequestedAudience,
 		GrantedAudience:   p.GrantedAudience,
-		SessionData:       p.SessionData,
 	}
 }

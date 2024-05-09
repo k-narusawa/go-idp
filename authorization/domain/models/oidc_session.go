@@ -135,10 +135,11 @@ func IDSessionOf(signature string, requester fosite.Requester) *OidcSession {
 		Scope:             strings.Join(requester.GetRequestedScopes(), " "),
 		GrantedScope:      strings.Join(requester.GetGrantedScopes(), " "),
 		FormData:          requester.GetRequestForm().Encode(),
+		SessionData:       string(jsonData),
+		Subject:           requester.GetSession().GetSubject(),
 		Active:            true,
 		RequestedAudience: strings.Join(requester.GetRequestedAudience(), " "),
 		GrantedAudience:   strings.Join(requester.GetGrantedAudience(), " "),
-		SessionData:       string(jsonData),
 	}
 }
 
@@ -152,10 +153,11 @@ func (is *OidcSession) ToRequester() fosite.Requester {
 		Scope:             is.Scope,
 		GrantedScope:      is.GrantedScope,
 		FormData:          is.FormData,
+		SessionData:       is.SessionData,
+		Subject:           is.Subject,
 		Active:            is.Active,
 		RequestedAudience: is.RequestedAudience,
 		GrantedAudience:   is.GrantedAudience,
-		SessionData:       is.SessionData,
 	}
 }
 
@@ -168,6 +170,8 @@ func (is *OidcSession) ToAuthorizeRequest() fosite.AuthorizeRequester {
 	ar.GrantedScope = is.GetGrantedScopes()
 	ar.Session = is.GetSession()
 	ar.ID = is.GetID()
+	ar.Client = is.GetClient()
+	ar.RequestedAudience = is.GetRequestedAudience()
 
 	return ar
 }
