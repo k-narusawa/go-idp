@@ -47,7 +47,7 @@ const LoginPage = () => {
       });
 
     if (!options) {
-      console.error("WebAuthn login failed");
+      setError("unexpected error occurred.");
       return;
     }
 
@@ -65,7 +65,7 @@ const LoginPage = () => {
       });
 
     if (!loginSkipResp) {
-      console.error("WebAuthn login failed");
+      setError("unexpected error occurred.");
       return;
     }
 
@@ -88,14 +88,14 @@ const LoginPage = () => {
         <Card>
           <div className="p-4">
             <div className="p-4 flex justify-center text-xl font-semi-bold">
-              ログイン
+              Login
             </div>
             {error && <div className="p-4 text-red-500">{error}</div>}
             <form method="post">
               <input type="hidden" name="scopes" value="openid" />
               <input type="hidden" name="scopes" value="offline" />
               <div className="p-4">
-                <label>ログインID</label>
+                <label>Email</label>
                 <Input
                   type="text"
                   name="username"
@@ -104,7 +104,7 @@ const LoginPage = () => {
                 />
               </div>
               <div className="p-4">
-                <label>パスワード</label>
+                <label>Password</label>
                 <Input
                   type="password"
                   name="password"
@@ -114,7 +114,7 @@ const LoginPage = () => {
               </div>
               <div className="p-4 px-12">
                 <Button type="submit" variant="primary" disabled={false}>
-                  ログイン
+                  Login
                 </Button>
               </div>
             </form>
@@ -126,7 +126,7 @@ const LoginPage = () => {
                 disabled={false}
                 onClick={onWebauthn}
               >
-                生体認証ログイン
+                Biometrics Login
               </Button>
             </div>
           </div>

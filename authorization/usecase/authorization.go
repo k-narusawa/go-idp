@@ -43,7 +43,9 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		// パニック発生時にセッションを削除できるようにしておく
 		if r := recover(); r != nil {
 			log.Printf("Recovered in Invoke: %+v", r)
-			c.Render(http.StatusOK, "login.html", nil)
+
+			msg := "unexpected error occurred."
+			c.Render(http.StatusOK, "login.html", msg)
 		}
 		a.isr.Delete(c)
 	}()
