@@ -20,6 +20,9 @@ type Oauth2Config struct {
 	AccessTokenLifespan   time.Duration `yaml:"access_token_lifespan"`
 	RefreshTokenLifespan  time.Duration `yaml:"refresh_token_lifespan"`
 	AuthorizeCodeLifespan time.Duration `yaml:"authorize_code_lifespan"`
+	Hmac                  struct {
+		Secret string `yaml:"secret"`
+	} `yaml:"hmac"`
 }
 
 func NewOauth2Provider(privateKey *rsa.PrivateKey) fosite.OAuth2Provider {
@@ -34,7 +37,7 @@ func NewOauth2Provider(privateKey *rsa.PrivateKey) fosite.OAuth2Provider {
 	}
 
 	var (
-		secret = []byte("some-cool-secret-that-is-32bytes")
+		secret = []byte(oc.Hmac.Secret)
 
 		getPrivateKey = func(context.Context) (interface{}, error) {
 			return privateKey, nil

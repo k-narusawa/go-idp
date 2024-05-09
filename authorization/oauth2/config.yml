@@ -2,3 +2,6 @@ access_token_lifespan: 1800 # 1 hour
 refresh_token_lifespan: 2592000 # 30 days
 authorization_code_lifespan: 300 # 5 minutes
 issuer: "go-idp"
+
+hmac:
+  secret: some-cool-secret-that-is-32bytes
