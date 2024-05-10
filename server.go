@@ -14,8 +14,8 @@ import (
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
 	"github.com/k-narusawa/go-idp/authorization/oauth2"
 	ou "github.com/k-narusawa/go-idp/authorization/usecase"
-	ra "github.com/k-narusawa/go-idp/resourceserver/adapter"
-	ru "github.com/k-narusawa/go-idp/resourceserver/usecase"
+	ra "github.com/k-narusawa/go-idp/resources/adapter"
+	ru "github.com/k-narusawa/go-idp/resources/usecase"
 
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/gorilla/sessions"

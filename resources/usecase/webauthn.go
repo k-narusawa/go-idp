@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
 	"github.com/k-narusawa/go-idp/authorization/domain/repository"
-	rm "github.com/k-narusawa/go-idp/resourceserver/domain/models"
+	rm "github.com/k-narusawa/go-idp/resources/domain/models"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"

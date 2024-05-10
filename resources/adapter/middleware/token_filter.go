@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	model "github.com/k-narusawa/go-idp/resourceserver/domain/models"
+	model "github.com/k-narusawa/go-idp/resources/domain/models"
 
 	"github.com/labstack/echo/v4"
 )
