@@ -17,7 +17,7 @@ type WebauthnUser struct {
 func NewWebauthnUser(userId string, userName string) *WebauthnUser {
 	wu := &WebauthnUser{}
 	wu.ID = userId
-	wu.Name = userId
+	wu.Name = userName
 	wu.DisplayName = userName
 	wu.Credentials = []WebauthnCredential{}
 	return wu
