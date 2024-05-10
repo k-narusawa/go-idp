@@ -78,6 +78,11 @@ func (at *AccessToken) GrantAudience(audience string) {
 	at.GrantedAudience = at.GrantedAudience + " " + audience
 }
 
+func (at *AccessToken) IsExpired() bool {
+	expiresAt := at.GetSession().GetExpiresAt(fosite.AccessToken)
+	return !expiresAt.IsZero() && expiresAt.Before(time.Now())
+}
+
 func (at *AccessToken) GetSession() fosite.Session {
 	var session fosite.DefaultSession
 

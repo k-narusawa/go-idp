@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
+	"github.com/k-narusawa/go-idp/authorization/domain/repository"
 
 	"github.com/labstack/echo/v4"
 	"github.com/ory/fosite"
@@ -11,10 +12,17 @@ import (
 
 type TokenUsecase struct {
 	oauth2 fosite.OAuth2Provider
+	atr    repository.IAccessTokenRepository
 }
 
-func NewTokenUsecase(oauth2 fosite.OAuth2Provider) TokenUsecase {
-	return TokenUsecase{oauth2: oauth2}
+func NewTokenUsecase(
+	oauth2 fosite.OAuth2Provider,
+	atr repository.IAccessTokenRepository,
+) TokenUsecase {
+	return TokenUsecase{
+		oauth2: oauth2,
+		atr:    atr,
+	}
 }
 
 func (t *TokenUsecase) Invoke(c echo.Context) error {
@@ -53,7 +61,22 @@ func (t *TokenUsecase) Invoke(c echo.Context) error {
 		return nil
 	}
 
-	// All done, send the response.
+	subject := ar.GetSession().GetSubject()
+	accessTokenList, err := t.atr.FindBySubject(subject)
+	if err != nil {
+		log.Printf("Error occurred in FindBySubject: %+v", err)
+	}
+
+	for _, accessToken := range *accessTokenList {
+		if !accessToken.IsExpired() {
+			continue
+		}
+		err := t.atr.DeleteBySignature(accessToken.Signature)
+		if err != nil {
+			log.Printf("Error occurred in DeleteBySignature: %+v", err)
+		}
+	}
+
 	t.oauth2.WriteAccessResponse(ctx, rw, ar, response)
 
 	return nil

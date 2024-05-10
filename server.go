@@ -95,10 +95,11 @@ func main() {
 	isr := gateway.NewIdpSessionRepository()
 	osr := gateway.NewOidcSessionRepository(db)
 	lssr := gateway.NewLoginSkipSessionRepository(db)
+	atr := gateway.NewAccessTokenRepository(db)
 
 	// oauth2
 	oau := ou.NewAuthorization(oauth2, ur, isr, osr, lssr)
-	otu := ou.NewTokenUsecase(oauth2)
+	otu := ou.NewTokenUsecase(oauth2, atr)
 	oiu := ou.NewIntrospectUsecase(oauth2)
 	oru := ou.NewRevokeUsecase(oauth2)
 	oju := ou.NewJWKUsecase()
