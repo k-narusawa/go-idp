@@ -30,8 +30,8 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm<Inputs>({
     defaultValues: {
-      username: "test@example.com",
-      password: "!Password0",
+      username: "",
+      password: "",
     },
   });
 
@@ -99,7 +99,7 @@ const LoginPage = () => {
                 <Input
                   type="text"
                   name="username"
-                  placeholder="test@example.com"
+                  placeholder=""
                   control={control}
                 />
               </div>
@@ -108,7 +108,7 @@ const LoginPage = () => {
                 <Input
                   type="password"
                   name="password"
-                  placeholder="********"
+                  placeholder=""
                   control={control}
                 />
               </div>
