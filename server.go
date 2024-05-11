@@ -115,7 +115,8 @@ func main() {
 	// resource server
 	uu := ru.UserinfoUsecase{}
 	wu := ru.NewWebauthnUsecase(*webAuthn, ur, wcr, wsr)
-	ra.NewResourceServerHandler(e, uu, wu)
+	iu := ru.NewIntrospectUsecase(atr)
+	ra.NewResourceServerHandler(e, uu, wu, iu)
 
 	e.Logger.Fatal(e.Start(":3846"))
 }

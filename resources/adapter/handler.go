@@ -10,16 +10,23 @@ import (
 type ResourceServerHandler struct {
 	uu usecase.UserinfoUsecase
 	wu usecase.WebauthnUsecase
+	iu usecase.IntrospectUsecase
 }
 
-func NewResourceServerHandler(e *echo.Echo, uu usecase.UserinfoUsecase, wu usecase.WebauthnUsecase) {
+func NewResourceServerHandler(
+	e *echo.Echo,
+	uu usecase.UserinfoUsecase,
+	wu usecase.WebauthnUsecase,
+	iu usecase.IntrospectUsecase,
+) {
 	handler := &ResourceServerHandler{
 		uu: uu,
 		wu: wu,
+		iu: iu,
 	}
 
 	r := e.Group("/resources")
-	r.Use(middleware.TokenAuthMiddleware())
+	r.Use(middleware.TokenAuthMiddleware(iu))
 
 	r.GET("/users/userinfo", handler.uu.GetUserinfo)
 	r.GET("/users/registrations/webauthn/options", handler.wu.Start)

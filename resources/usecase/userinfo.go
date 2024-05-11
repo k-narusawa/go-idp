@@ -1,8 +1,6 @@
 package usecase
 
 import (
-	"github.com/k-narusawa/go-idp/resources/domain/models"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -14,9 +12,9 @@ func NewAuthorization() UserinfoUsecase {
 }
 
 func (ui *UserinfoUsecase) GetUserinfo(c echo.Context) error {
-	ir := c.Get(("ir")).(models.IntrospectResponse)
+	sub := c.Get(("subject")).(string)
 
 	return c.JSON(200, map[string]interface{}{
-		"sub": ir.Sub,
+		"sub": sub,
 	})
 }

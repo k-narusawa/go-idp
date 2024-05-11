@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
 	"github.com/k-narusawa/go-idp/authorization/domain/repository"
-	rm "github.com/k-narusawa/go-idp/resources/domain/models"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -36,9 +35,9 @@ func NewWebauthnUsecase(
 }
 
 func (w *WebauthnUsecase) Start(c echo.Context) error {
-	ir := c.Get(("ir")).(rm.IntrospectResponse)
+	sub := c.Get(("subject")).(string)
 
-	user, err := w.ur.FindByUserID(ir.Sub)
+	user, err := w.ur.FindByUserID(sub)
 	if err != nil {
 		return err
 	}
@@ -82,10 +81,10 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 }
 
 func (w *WebauthnUsecase) Finish(c echo.Context) error {
-	ir := c.Get(("ir")).(rm.IntrospectResponse)
+	sub := c.Get(("subject")).(string)
 	challenge := c.QueryParam("challenge")
 
-	user, err := w.ur.FindByUserID(ir.Sub)
+	user, err := w.ur.FindByUserID(sub)
 	if err != nil {
 		return err
 	}
@@ -117,9 +116,9 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 }
 
 func (w *WebauthnUsecase) Get(c echo.Context) error {
-	ir := c.Get(("ir")).(rm.IntrospectResponse)
+	sub := c.Get(("subject")).(string)
 
-	credentials, err := w.wcr.FindByUserID(ir.Sub)
+	credentials, err := w.wcr.FindByUserID(sub)
 	if err != nil {
 		return err
 	}
@@ -162,8 +161,6 @@ type WebauthnResponseItem struct {
 }
 
 func (w *WebauthnUsecase) Delete(c echo.Context) error {
-	// ir := c.Get(("ir")).(rm.IntrospectResponse)
-
 	credentialID := c.Param("credential_id")
 	// stringからuintに変換
 	credentialIDUint, _ := strconv.Atoi(credentialID)
