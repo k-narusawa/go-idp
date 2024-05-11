@@ -1,7 +1,9 @@
 package usecase
 
 import (
+	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
@@ -103,6 +105,11 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 		return err
 	}
 
+	log.Printf("credential.ID: %v\n", credential.ID)
+	log.Printf("credential.ID: %v\n", string(credential.ID))
+	uuid, _ := uuid.FromBytes(credential.ID)
+	log.Printf("uuid: %v\n", uuid.String())
+
 	err = w.wsr.DeleteByChallenge(challenge)
 	if err != nil {
 		return err
@@ -118,33 +125,31 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 func (w *WebauthnUsecase) Get(c echo.Context) error {
 	ir := c.Get(("ir")).(rm.IntrospectResponse)
 
-	wcs, err := w.wcr.FindByUserID(ir.Sub)
+	credentials, err := w.wcr.FindByUserID(ir.Sub)
 	if err != nil {
 		return err
-	}
-
-	credentials := make([]webauthn.Credential, len(wcs))
-	for i, wc := range wcs {
-		credentials[i] = *wc.To()
 	}
 
 	resp := WebauthnResponse{
 		Keys: make([]WebauthnResponseItem, len(credentials)),
 	}
 
-	for i, cred := range credentials {
-		id, _ := uuid.FromBytes(cred.ID)
+	for i, credential := range credentials {
+		wCredential := credential.To()
+
+		id, _ := uuid.FromBytes(credential.ID)
 		// idがたまに変なことがあるので、一旦コメントアウト
 		// if err != nil {
 		// 	return err
 		// }
 
-		aaguid, _ := uuid.FromBytes(cred.Authenticator.AAGUID)
+		aaguid, _ := uuid.FromBytes(wCredential.Authenticator.AAGUID)
 
 		resp.Keys[i] = WebauthnResponseItem{
-			ID:      id.String(),
-			AAGUID:  aaguid.String(),
-			KeyName: models.Authenticators[aaguid.String()].Name,
+			CredentialID: credential.CredentialID,
+			ID:           id.String(),
+			AAGUID:       aaguid.String(),
+			KeyName:      models.Authenticators[aaguid.String()].Name,
 		}
 	}
 
@@ -156,28 +161,19 @@ type WebauthnResponse struct {
 }
 
 type WebauthnResponseItem struct {
-	ID      string `json:"id"`
-	AAGUID  string `json:"aaguid"`
-	KeyName string `json:"key_name"`
+	CredentialID uint   `json:"credential_id"`
+	ID           string `json:"id"`
+	AAGUID       string `json:"aaguid"`
+	KeyName      string `json:"key_name"`
 }
 
 func (w *WebauthnUsecase) Delete(c echo.Context) error {
 	// ir := c.Get(("ir")).(rm.IntrospectResponse)
 
-	id := c.Param("id")
-
-	// uuid形式の文字列をuuidに変換
-	uuid, err := uuid.Parse(id)
-	if err != nil {
-		return err
-	}
-
-	bytes, err := uuid.MarshalBinary()
-	if err != nil {
-		return err
-	}
-
-	err = w.wcr.DeleteByID(bytes)
+	credentialID := c.Param("credential_id")
+	// stringからuintに変換
+	credentialIDUint, _ := strconv.Atoi(credentialID)
+	err := w.wcr.DeleteByCredentialID(uint(credentialIDUint))
 	if err != nil {
 		return err
 	}

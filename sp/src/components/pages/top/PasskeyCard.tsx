@@ -5,7 +5,7 @@ import { HorizontalLine } from "@/components/common/HorizontalLine";
 type Props = {
   passkeys: PasskeyResponse | null;
   onRegister: () => void;
-  onDelete: (id: string) => void;
+  onDelete: (credential_id: number) => void;
 };
 
 export const PasskeyCard: React.FC<Props> = ({
@@ -30,7 +30,7 @@ export const PasskeyCard: React.FC<Props> = ({
                 <span
                   className="text-red-500 hover:underline hover:cursor-pointer"
                   onClick={() => {
-                    onDelete(passkey.id);
+                    onDelete(passkey.credential_id);
                   }}
                 >
                   DELETE

@@ -82,11 +82,11 @@ const Home = ({
     window.location.reload();
   };
 
-  const onDelete = async (id: string) => {
+  const onDelete = async (credentialId: number) => {
     await axios
       .delete(`/api/resources/users/webauthn`, {
         params: {
-          id: id,
+          id: credentialId,
         },
       })
       .then((response) => response.data)

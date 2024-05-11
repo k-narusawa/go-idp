@@ -3,6 +3,7 @@ type PasskeyResponse = {
 };
 
 type PasskeyResponseItem = {
+  credential_id: number;
   id: string;
   aaguid: string;
   key_name: string;

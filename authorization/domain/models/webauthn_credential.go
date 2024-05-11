@@ -9,7 +9,8 @@ import (
 )
 
 type WebauthnCredential struct {
-	ID              []byte `gorm:"type:blob;index;primary_key"`
+	CredentialID    uint   `gorm:"primary_key;auto_increment;not null;"`
+	ID              []byte `gorm:"type:blob;index;"`
 	UserID          string `gorm:"type:varchar(36);not null;index"`
 	PublicKey       []byte `gorm:"type:blob"`
 	AttestationType string `gorm:"type:text"`

@@ -8,5 +8,5 @@ type IWebauthnCredentialRepository interface {
 	FindByID(id string) (*models.WebauthnCredential, error)
 	FindByUserID(userID string) ([]models.WebauthnCredential, error)
 	Save(credential *models.WebauthnCredential) error
-	DeleteByID(id []byte) error
+	DeleteByCredentialID(credentialID uint) error
 }
