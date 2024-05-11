@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/k-narusawa/go-idp/logger"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
 	"github.com/ory/fosite/token/hmac"
@@ -24,7 +25,10 @@ type Oauth2Config struct {
 	} `yaml:"hmac"`
 }
 
-func NewOauth2Provider(privateKey *rsa.PrivateKey) fosite.OAuth2Provider {
+func NewOauth2Provider(
+	privateKey *rsa.PrivateKey,
+	logger logger.Logger,
+) fosite.OAuth2Provider {
 	content, err := os.ReadFile("authorization/oauth2/config.yml")
 	if err != nil {
 		panic(err)
@@ -71,7 +75,7 @@ func NewOauth2Provider(privateKey *rsa.PrivateKey) fosite.OAuth2Provider {
 	// var jwtStrategy = compose.NewOAuth2JWTStrategy(getPrivateKey, oAuth2HMACStrategy, config)
 	return compose.Compose(
 		config,
-		NewIdpStorage(),
+		NewIdpStorage(logger),
 		&compose.CommonStrategy{
 			CoreStrategy: oAuth2HMACStrategy,
 			// CoreStrategy:               jwtStrategy,

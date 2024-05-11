@@ -1,55 +1,106 @@
-package main
+package logger
 
 import (
 	"context"
+	"fmt"
+	"log"
+	"os"
+
 	"log/slog"
+
+	"github.com/pkg/errors"
 )
 
-type ContextHandler struct {
-	slog.Handler
+type Logger struct {
+	logger         *slog.Logger
+	onError        func(l *Logger, msg string, err error, arg ...any)
+	loggerContexts []LoggerContext
 }
 
-func (ch ContextHandler) Enabled(ctx context.Context, level slog.Level) bool {
-	return ch.Handler.Enabled(ctx, level)
+type Opts struct {
+	Level   slog.Level
+	OnError func(l *Logger, msg string, err error, arg ...any)
 }
 
-// Handle backend for api, this will be used to configure how the logs will be structured
-func (ch ContextHandler) Handle(ctx context.Context, r slog.Record) error {
-	r.AddAttrs(ch.addRequestId(ctx)...)
-	return ch.Handler.Handle(ctx, r)
+type LoggerContext struct {
+	Key   string
+	Value string
 }
 
-// WithAttrs overriding default implementation otherwise it will call the starting JSON Handler
-func (ch ContextHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return ContextHandler{ch.Handler.WithAttrs(attrs)}
-}
-
-// WithGroup overriding default implementation otherwise it will call the starting JSON Handler
-func (ch ContextHandler) WithGroup(name string) slog.Handler {
-	return ContextHandler{ch.Handler.WithGroup(name)}
-}
-
-func (ch ContextHandler) addRequestId(ctx context.Context) []slog.Attr {
-	var as []slog.Attr
-	correlation := getDefaultValueFromContext(ctx, "correlation_id")
-	method := getDefaultValueFromContext(ctx, "request_method")
-	path := getDefaultValueFromContext(ctx, "request_path")
-	agent := getDefaultValueFromContext(ctx, "request_user_agent")
-
-	group := slog.Group("meta_information", slog.String("correlation_id", correlation),
-		slog.String("request_method", method),
-		slog.String("request_path", path),
-		slog.String("request_user_agent", agent))
-	as = append(as, group)
-	return as
-}
-
-// getDefaultValueFromContext get default value from context
-func getDefaultValueFromContext(ctx context.Context, key string) string {
-	value := ""
-	ctxValue := ctx.Value(key)
-	if ctxValue != nil {
-		value = ctxValue.(string)
+func New() *Logger {
+	options := slog.HandlerOptions{
+		AddSource: false,
+		Level:     slog.LevelInfo,
 	}
-	return value
+	jsonHandler := slog.NewJSONHandler(os.Stdout, &options)
+	logger := slog.New(jsonHandler)
+
+	return &Logger{
+		logger: logger,
+		onError: func(l *Logger, msg string, err error, arg ...any) {
+			traceIDContext, ok := l.LoggerContext("traceID")
+			if !ok {
+				log.Println(msg)
+				return
+			}
+
+			log.Printf("%s \n", traceIDContext.Value)
+		},
+	}
+}
+
+func (l *Logger) With(args ...any) *Logger {
+	return &Logger{
+		logger:  l.logger.With(args...),
+		onError: l.onError,
+	}
+}
+
+func (l *Logger) LoggerContext(k string) (*LoggerContext, bool) {
+	for _, v := range l.loggerContexts {
+		if v.Key == k {
+			return &v, true
+		}
+	}
+
+	return nil, false
+}
+
+func (l *Logger) SetLoggerContexts(args ...LoggerContext) {
+	l.loggerContexts = append(l.loggerContexts, args...)
+}
+
+func (l *Logger) Debug(msg string, arg ...any) {
+	l.logger.Debug(msg, arg...)
+}
+
+func (l *Logger) Info(msg string, arg ...any) {
+	l.logger.Info(msg, arg...)
+}
+
+func (l *Logger) Warn(msg string, arg ...any) {
+	l.logger.Warn(msg, arg...)
+}
+
+func (l *Logger) Error(msg string, err error, arg ...any) {
+	arg = append(arg, slog.String("stack", fmt.Sprintf("%+v", errors.WithStack(err))))
+	l.logger.Error(msg, append([]any{err}, arg...)...)
+
+	go func() {
+		l.onError(l, msg, err, arg...)
+	}()
+}
+
+type traceLoggerCtxKey struct{}
+
+// context に logger を詰める
+func TraceLoggerWith(ctx context.Context, logger *Logger) context.Context {
+	return context.WithValue(ctx, traceLoggerCtxKey{}, logger)
+}
+
+// context から Logger を抜き出す
+func TraceLoggerFrom(ctx context.Context) (*Logger, bool) {
+	traceLogger, ok := ctx.Value(traceLoggerCtxKey{}).(*Logger)
+
+	return traceLogger, ok
 }

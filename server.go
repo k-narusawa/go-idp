@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strings"
 
 	oa "github.com/k-narusawa/go-idp/authorization/adapter"
 	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
@@ -33,7 +32,7 @@ func main() {
 		panic("Error loading .env file")
 	}
 
-	profile, ok := os.LookupEnv("PROFILE")
+	_, ok := os.LookupEnv("PROFILE")
 	if !ok {
 		fmt.Println("env is not set")
 	}
@@ -41,27 +40,29 @@ func main() {
 	e := echo.New()
 	gateway.DbInit()
 
-	opts := slog.HandlerOptions{
-		AddSource: true,
-		Level:     slog.LevelInfo,
-	}
-	jsonHandler := slog.NewJSONHandler(os.Stdout, &opts)
-	ctxHandler := logger.ContextHandler{Handler: jsonHandler}
-	logger := slog.New(ctxHandler)
-	slog.SetDefault(logger)
+	logger := logger.New()
 
-	if profile == "local" {
-		skipperFunc := func(c echo.Context) bool {
-			path := c.Request().URL.Path
-			return strings.HasSuffix(path, ".css") || strings.HasSuffix(path, ".js") || strings.HasSuffix(path, ".png") || strings.HasSuffix(path, ".jpg")
-		}
-		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-			Format:  "method=${method}, uri=${uri}, status=${status}\n",
-			Skipper: skipperFunc,
-		}))
-	} else {
-		e.Use(middleware.Logger())
-	}
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogStatus:   true,
+		LogURI:      true,
+		LogError:    true,
+		HandleError: true, // forwards error to the global error handler, so it can decide appropriate status code
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			if v.Error == nil {
+				logger.Info("REQUEST",
+					slog.String("uri", v.URI),
+					slog.Int("status", v.Status),
+				)
+			} else {
+				logger.Warn("REQUEST_ERROR",
+					slog.String("uri", v.URI),
+					slog.Int("status", v.Status),
+					slog.String("err", v.Error.Error()),
+				)
+			}
+			return nil
+		},
+	}))
 
 	e.Use(middleware.Recover())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
@@ -72,24 +73,6 @@ func main() {
 		templates: template.Must(template.ParseGlob("views/*.html")),
 	}
 
-	privateKey, err := oauth2.ReadPrivatekey()
-	if err != nil {
-		panic(err)
-	}
-
-	oauth2 := oauth2.NewOauth2Provider(privateKey)
-
-	wconfig := &webauthn.Config{
-		RPDisplayName: "localhost",
-		RPID:          "localhost",
-		RPOrigins:     []string{"http://localhost:3000", "http://localhost:3846"},
-	}
-
-	webAuthn, err := webauthn.New(wconfig)
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	e.Static("/static", "static")
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -98,6 +81,23 @@ func main() {
 	}))
 
 	db := gateway.Connect()
+
+	privateKey, err := oauth2.ReadPrivatekey()
+	if err != nil {
+		panic(err)
+	}
+
+	wconfig := &webauthn.Config{
+		RPDisplayName: "localhost",
+		RPID:          "localhost",
+		RPOrigins:     []string{"http://localhost:3000", "http://localhost:3846"},
+	}
+
+	oauth2 := oauth2.NewOauth2Provider(privateKey, *logger)
+	webAuthn, err := webauthn.New(wconfig)
+	if err != nil {
+		panic(err)
+	}
 
 	ur := gateway.NewUserRepository(db)
 	wcr := gateway.NewWebauthnCredentialRepository(db)
@@ -125,8 +125,8 @@ func main() {
 
 	// resource server
 	uu := ru.UserinfoUsecase{}
-	wu := ru.NewWebauthnUsecase(*webAuthn, ur, wcr, wsr)
-	iu := ru.NewIntrospectUsecase(atr)
+	wu := ru.NewWebauthnUsecase(*logger, *webAuthn, ur, wcr, wsr)
+	iu := ru.NewIntrospectUsecase(*logger, atr)
 	ra.NewResourceServerHandler(e, uu, wu, iu)
 
 	e.Logger.Fatal(e.Start(":3846"))

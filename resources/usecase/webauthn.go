@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
 	"github.com/k-narusawa/go-idp/authorization/domain/repository"
+	"github.com/k-narusawa/go-idp/logger"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -14,6 +15,7 @@ import (
 )
 
 type WebauthnUsecase struct {
+	logger   logger.Logger
 	webauthn webauthn.WebAuthn
 	ur       repository.IUserRepository
 	wcr      repository.IWebauthnCredentialRepository
@@ -21,12 +23,14 @@ type WebauthnUsecase struct {
 }
 
 func NewWebauthnUsecase(
+	logger logger.Logger,
 	webauthn webauthn.WebAuthn,
 	ur repository.IUserRepository,
 	wcr repository.IWebauthnCredentialRepository,
 	wsr repository.IWebauthnSessionRepository,
 ) WebauthnUsecase {
 	return WebauthnUsecase{
+		logger:   logger,
 		webauthn: webauthn,
 		ur:       ur,
 		wcr:      wcr,
@@ -74,6 +78,7 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 
 	err = w.wsr.Save(ws)
 	if err != nil {
+		w.logger.Error("failed to save webauthn session data", err)
 		return err
 	}
 
@@ -86,11 +91,13 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 
 	user, err := w.ur.FindByUserID(sub)
 	if err != nil {
+		w.logger.Error("failed to find user", err)
 		return err
 	}
 
 	wsd, err := w.wsr.FindByChallenge(challenge)
 	if err != nil {
+		w.logger.Error("failed to find webauthn session data", err)
 		return err
 	}
 
@@ -100,15 +107,18 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 
 	credential, err := w.webauthn.FinishRegistration(wu, *session, c.Request())
 	if err != nil {
+		w.logger.Error("failed to finish registration", err)
 		return err
 	}
 
 	err = w.wsr.DeleteByChallenge(challenge)
 	if err != nil {
+		w.logger.Error("failed to delete webauthn session data", err)
 		return err
 	}
 
 	if w.wcr.Save(models.FromWebauthnCredential(user.UserID, credential)) != nil {
+		w.logger.Error("failed to save webauthn credential", err)
 		return err
 	}
 
@@ -120,6 +130,7 @@ func (w *WebauthnUsecase) Get(c echo.Context) error {
 
 	credentials, err := w.wcr.FindByUserID(sub)
 	if err != nil {
+		w.logger.Error("failed to find webauthn credentials", err)
 		return err
 	}
 

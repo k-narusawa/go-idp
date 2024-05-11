@@ -4,16 +4,19 @@ import (
 	"context"
 	"errors"
 	"log"
+	"log/slog"
 	"time"
 
 	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
+	"github.com/k-narusawa/go-idp/logger"
 
 	"github.com/ory/fosite"
 	"gorm.io/gorm"
 )
 
 type IdpStorage struct {
+	logger             logger.Logger
 	Clients            []models.Client
 	OidcSessions       []models.OidcSession
 	AuthorizationCodes []models.AuthorizationCode
@@ -22,52 +25,69 @@ type IdpStorage struct {
 	PKCES              []models.PKCE
 }
 
-func NewIdpStorage() *IdpStorage {
-	is := IdpStorage{}
+func NewIdpStorage(logger logger.Logger) *IdpStorage {
+	is := IdpStorage{
+		logger: logger,
+	}
 	return &is
 }
 
 func (s *IdpStorage) CreateClient(_ context.Context, client fosite.Client) {
+	s.logger.Info("CreateClient",
+		slog.String("client_id", client.GetID()),
+	)
+
 	db := gateway.Connect()
 
 	c := models.ClientOf(client)
 	result := db.Create(&c)
 	if result.Error != nil {
-		log.Printf("Error occurred in CreateClient: %+v", result.Error)
+		s.logger.Error("Error occurred in CreateClient", result.Error)
 	}
-	log.Printf("CreateClient ClientID: %+v", c.ID)
 }
 
 func (s *IdpStorage) GetClient(_ context.Context, id string) (fosite.Client, error) {
+	s.logger.Info("GetClient",
+		slog.String("id", id),
+	)
+
 	db := gateway.Connect()
 
 	var c models.Client
 	res := db.Where("id=?", id).First(&c)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Printf("No record found for id: %s", id)
+			s.logger.Warn("No record found for id",
+				slog.String("id", id),
+			)
 			return nil, fosite.ErrNotFound
 		}
-		log.Printf("Error occurred in GetClient: %+v", res.Error)
+		s.logger.Error("Error occurred in GetClient", res.Error)
 		return nil, res.Error
 	}
-
-	log.Printf("GetClient ClientID: %+v", c.ID)
 
 	return models.CastToClient(c), nil
 }
 
 func (s *IdpStorage) ClientAssertionJWTValid(_ context.Context, jti string) error {
-	log.Printf("ClientAssertionJWTValid: %+v", jti)
+	s.logger.Info("ClientAssertionJWTValid",
+		slog.String("jti", jti),
+	)
 	return nil
 }
 
 func (s *IdpStorage) SetClientAssertionJWT(_ context.Context, jti string, exp time.Time) error {
-	log.Printf("ClientAssertionJWTValid: %+v", jti)
+	s.logger.Info("SetClientAssertionJWT",
+		slog.String("jti", jti),
+	)
 	return nil
 }
 
 func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) error {
+	s.logger.Info("CreateOpenIDConnectSession",
+		slog.String("signature", authorizeCode),
+	)
+
 	db := gateway.Connect()
 
 	is := models.IDSessionOf(authorizeCode, requester)
@@ -75,15 +95,20 @@ func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode
 	result := db.Create(&is)
 
 	if result.Error != nil {
-		log.Printf("Error occurred in CreateOpenIDConnectSession: %+v", result.Error)
+		s.logger.Error("Error occurred in CreateOpenIDConnectSession",
+			result.Error,
+		)
 		return result.Error
 	}
 
-	log.Printf("CreateOpenIDConnectSession Signature: %+v", authorizeCode)
 	return nil
 }
 
 func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
+	s.logger.Info("GetOpenIDConnectSession",
+		slog.String("signature", authorizeCode),
+	)
+
 	db := gateway.Connect()
 
 	var is models.OidcSession
@@ -91,24 +116,33 @@ func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode st
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			log.Printf("No record found for signature: %s", authorizeCode)
+			s.logger.Warn("No record found for signature",
+				slog.String("signature", authorizeCode),
+			)
 			return nil, fosite.ErrNotFound
 		}
-		log.Printf("Error occurred in GetOpenIDConnectSession: %+v", result.Error)
+		s.logger.Error("Error occurred in GetOpenIDConnectSession",
+			result.Error,
+		)
 		return nil, result.Error
 	}
 
-	log.Printf("GetOpenIDConnectSession Signature: %+v", authorizeCode)
 	return is.ToRequester(), nil
 }
 
 func (s *IdpStorage) DeleteOpenIDConnectSession(_ context.Context, authorizeCode string) error {
 	// Deprecated
-	log.Printf("[Deprecated Operation] DeleteOpenIDConnectSession Signature: %+v", authorizeCode)
+	s.logger.Info("DeleteOpenIDConnectSession",
+		slog.String("signature", authorizeCode),
+		slog.String("operation", "DEPRECATED"),
+	)
 	return nil
 }
 
 func (s *IdpStorage) CreateAccessTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
+	s.logger.Info("CreateAccessTokenSession",
+		slog.String("signature", signature),
+	)
 	db := gateway.Connect()
 
 	at := models.AccessTokenOf(signature, request)
@@ -116,15 +150,20 @@ func (s *IdpStorage) CreateAccessTokenSession(ctx context.Context, signature str
 	result := db.Create(&at)
 
 	if result.Error != nil {
-		log.Printf("Error occurred in CreateAccessTokenSession: %+v", result.Error)
+		s.logger.Error("Error occurred in CreateAccessTokenSession",
+			result.Error,
+		)
 		return result.Error
 	}
 
-	log.Printf("CreateAccessTokenSession Signature: %+v", signature)
 	return nil
 }
 
 func (s *IdpStorage) GetAccessTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
+	s.logger.Info("GetAccessTokenSession",
+		slog.String("signature", signature),
+	)
+
 	db := gateway.Connect()
 
 	var at models.AccessToken
@@ -136,46 +175,62 @@ func (s *IdpStorage) GetAccessTokenSession(ctx context.Context, signature string
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			log.Printf("No record found for signature: %s", signature)
+			s.logger.Warn("No record found for signature",
+				slog.String("signature", signature),
+			)
 			return nil, fosite.ErrNotFound
 		}
-		log.Printf("Error occurred in GetAccessTokenSession: %+v", result.Error)
+		s.logger.Error("Error occurred in GetAccessTokenSession",
+			result.Error,
+		)
 		return nil, result.Error
 	}
 
-	log.Printf("GetAccessTokenSession Signature: %+v", signature)
 	return at.ToRequester(), nil
 }
 
 func (s *IdpStorage) DeleteAccessTokenSession(ctx context.Context, signature string) (err error) {
+	s.logger.Info("DeleteAccessTokenSession",
+		slog.String("signature", signature),
+	)
+
 	db := gateway.Connect()
 
 	result := db.Where("signature=?", signature).Delete(&models.AccessToken{})
 	if result.Error != nil {
-		log.Printf("Error occurred in DeleteAccessTokenSession: %+v", result.Error)
+		s.logger.Error("Error occurred in DeleteAccessTokenSession",
+			result.Error,
+		)
 		return result.Error
 	}
 
-	log.Printf("DeleteAccessTokenSession Signature: %+v", signature)
 	return nil
 }
 
 func (s *IdpStorage) CreateAuthorizeCodeSession(_ context.Context, code string, req fosite.Requester) error {
+	s.logger.Info("CreateAuthorizeCodeSession",
+		slog.String("code", code),
+	)
+
 	db := gateway.Connect()
 
 	ac := models.AuthorizationCodeOf(code, req)
 
 	result := db.Create(&ac)
 	if result.Error != nil {
-		log.Printf("Error occurred in CreateAuthorizeCodeSession: %+v", result.Error)
+		s.logger.Error("Error occurred in CreateAuthorizeCodeSession",
+			result.Error,
+		)
 		return result.Error
 	}
 
-	log.Printf("CreateAuthorizeCodeSession Code: %+v", code)
 	return nil
 }
 
 func (s *IdpStorage) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (request fosite.Requester, err error) {
+	s.logger.Info("GetAuthorizeCodeSession",
+		slog.String("code", code),
+	)
 	db := gateway.Connect()
 
 	var ac models.AuthorizationCode
@@ -185,43 +240,53 @@ func (s *IdpStorage) GetAuthorizeCodeSession(ctx context.Context, code string, s
 		Find(&ac)
 
 	if ar.Error != nil {
-		log.Printf("Error occurred in GetAuthorizeCodeSession: %+v", ar.Error)
+		s.logger.Error("Error occurred in GetAuthorizeCodeSession",
+			ar.Error,
+		)
 		return nil, ar.Error
 	}
 
-	log.Printf("GetAuthorizeCodeSession Code: %+v", code)
 	return ac.ToRequester(), nil
 }
 
 func (s *IdpStorage) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
+	s.logger.Info("InvalidateAuthorizeCodeSession",
+		slog.String("code", code),
+	)
+
 	db := gateway.Connect()
 
 	result := db.Where("signature=?", code).Delete(&models.AuthorizationCode{})
 	if result.Error != nil {
-		log.Printf("Error occurred in InvalidateAuthorizeCodeSession: %+v", result.Error)
+		s.logger.Error("Error occurred in InvalidateAuthorizeCodeSession", result.Error)
 		return result.Error
 	}
 
-	log.Printf("InvalidateAuthorizeCodeSession Code: %+v", code)
 	return nil
 }
 
 func (s *IdpStorage) CreateRefreshTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
+	s.logger.Info("CreateRefreshTokenSession",
+		slog.String("signature", signature),
+	)
 	db := gateway.Connect()
 
 	rt := models.RefreshTokenOf(signature, request)
 	result := db.Create(&rt)
 
 	if result.Error != nil {
-		log.Printf("Error occurred in CreateRefreshTokenSession: %+v", result.Error)
+		s.logger.Error("Error occurred in CreateRefreshTokenSession", result.Error)
 		return result.Error
 	}
 
-	log.Printf("CreateRefreshTokenSession Signature: %+v", signature)
 	return nil
 }
 
 func (s *IdpStorage) GetRefreshTokenSession(ctx context.Context, signature string, session fosite.Session) (request fosite.Requester, err error) {
+	s.logger.Info("GetRefreshTokenSession",
+		slog.String("signature", signature),
+	)
+
 	db := gateway.Connect()
 
 	var rt models.RefreshToken
@@ -231,31 +296,39 @@ func (s *IdpStorage) GetRefreshTokenSession(ctx context.Context, signature strin
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			log.Printf("No record found for signature: %s", signature)
+			s.logger.Warn("No record found for signature",
+				slog.String("signature", signature),
+			)
 			return nil, fosite.ErrNotFound
 		}
-		log.Printf("Error occurred in GetRefreshTokenSession: %+v", result.Error)
+		s.logger.Error("Error occurred in GetRefreshTokenSession", result.Error)
 		return nil, result.Error
 	}
 
-	log.Printf("GetRefreshTokenSession Signature: %+v", signature)
 	return rt.ToRequester(), nil
 }
 
 func (s *IdpStorage) DeleteRefreshTokenSession(ctx context.Context, signature string) (err error) {
+	s.logger.Info("DeleteRefreshTokenSession",
+		slog.String("signature", signature),
+	)
+
 	db := gateway.Connect()
 
 	result := db.Where("signature=?", signature).Delete(&models.RefreshToken{})
 	if result.Error != nil {
-		log.Printf("Error occurred in DeleteRefreshTokenSession: %+v", result.Error)
+		s.logger.Error("Error occurred in DeleteRefreshTokenSession", result.Error)
 		return result.Error
 	}
 
-	log.Printf("DeleteRefreshTokenSession Signature: %+v", signature)
 	return nil
 }
 
 func (s *IdpStorage) RevokeAccessToken(ctx context.Context, requestID string) error {
+	s.logger.Info("RevokeAccessToken",
+		slog.String("requestID", requestID),
+	)
+
 	db := gateway.Connect()
 
 	result := db.Where("request_id=?", requestID).Delete(&models.AccessToken{})
@@ -264,20 +337,22 @@ func (s *IdpStorage) RevokeAccessToken(ctx context.Context, requestID string) er
 		return result.Error
 	}
 
-	log.Printf("RevokeAccessToken RequestID: %+v", requestID)
 	return nil
 }
 
 func (s *IdpStorage) RevokeRefreshToken(ctx context.Context, requestID string) error {
+	s.logger.Info("RevokeRefreshToken",
+		slog.String("requestID", requestID),
+	)
+
 	db := gateway.Connect()
 
 	result := db.Where("request_id=?", requestID).Delete(&models.RefreshToken{})
 	if result.Error != nil {
-		log.Printf("Error occurred in RevokeRefreshToken: %+v", result.Error)
+		s.logger.Error("Error occurred in RevokeRefreshToken", result.Error)
 		return result.Error
 	}
 
-	log.Printf("RevokeRefreshToken RequestID: %+v", requestID)
 	return nil
 }
 
@@ -287,21 +362,28 @@ func (s *IdpStorage) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, req
 }
 
 func (s *IdpStorage) CreatePKCERequestSession(_ context.Context, code string, req fosite.Requester) error {
+	s.logger.Info("CreatePKCERequestSession",
+		slog.String("signature", code),
+	)
+
 	db := gateway.Connect()
 
 	pkce := models.PKCEOf(code, req)
 
 	result := db.Create(&pkce)
 	if result.Error != nil {
-		log.Printf("Error occurred in CreatePKCERequestSession: %+v", result.Error)
+		s.logger.Error("Error occurred in CreatePKCERequestSession", result.Error)
 		return result.Error
 	}
 
-	log.Printf("CreatePKCERequestSession Signature: %+v", code)
 	return nil
 }
 
 func (s *IdpStorage) GetPKCERequestSession(_ context.Context, code string, _ fosite.Session) (fosite.Requester, error) {
+	s.logger.Info("GetPKCERequestSession",
+		slog.String("signature", code),
+	)
+
 	db := gateway.Connect()
 
 	var pkce models.PKCE
@@ -309,26 +391,30 @@ func (s *IdpStorage) GetPKCERequestSession(_ context.Context, code string, _ fos
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			log.Printf("No record found for signature: %s", code)
+			s.logger.Warn("No record found for signature",
+				slog.String("signature", code),
+			)
 			return nil, fosite.ErrNotFound
 		}
-		log.Printf("Error occurred in GetPKCERequestSession: %+v", result.Error)
+		s.logger.Error("Error occurred in GetPKCERequestSession", result.Error)
 		return nil, result.Error
 	}
 
-	log.Printf("GetPKCERequestSession Signature: %+v", code)
 	return pkce.ToRequester(), nil
 }
 
 func (s *IdpStorage) DeletePKCERequestSession(_ context.Context, code string) error {
+	s.logger.Info("DeletePKCERequestSession",
+		slog.String("signature", code),
+	)
+
 	db := gateway.Connect()
 
 	result := db.Where("signature=?", code).Delete(&models.PKCE{})
 	if result.Error != nil {
-		log.Printf("Error occurred in DeletePKCERequestSession: %+v", result.Error)
+		s.logger.Error("Error occurred in DeletePKCERequestSession", result.Error)
 		return result.Error
 	}
 
-	log.Printf("DeletePKCERequestSession Signature: %+v", code)
 	return nil
 }
