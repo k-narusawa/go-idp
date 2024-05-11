@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
 	"github.com/k-narusawa/go-idp/authorization/oauth2"
 	ou "github.com/k-narusawa/go-idp/authorization/usecase"
+	"github.com/k-narusawa/go-idp/logger"
 	ra "github.com/k-narusawa/go-idp/resources/adapter"
 	ru "github.com/k-narusawa/go-idp/resources/usecase"
 
@@ -38,6 +40,15 @@ func main() {
 
 	e := echo.New()
 	gateway.DbInit()
+
+	opts := slog.HandlerOptions{
+		AddSource: true,
+		Level:     slog.LevelInfo,
+	}
+	jsonHandler := slog.NewJSONHandler(os.Stdout, &opts)
+	ctxHandler := logger.ContextHandler{Handler: jsonHandler}
+	logger := slog.New(ctxHandler)
+	slog.SetDefault(logger)
 
 	if profile == "local" {
 		skipperFunc := func(c echo.Context) bool {

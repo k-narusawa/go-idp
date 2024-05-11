@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"strings"
 
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
@@ -20,30 +20,29 @@ func NewIntrospectUsecase(atr repository.IAccessTokenRepository) IntrospectUseca
 }
 
 func (i *IntrospectUsecase) Introspect(token string) (accessToken *models.AccessToken, err error) {
+	slog.Info("Introspect", "tokent", token)
 	splited := strings.Split(token, ".")
 	if len(splited) != 2 {
-		log.Printf("Failed to introspect token: invalid token")
+		slog.Info("Failed to introspect token: invalid token")
 		return
 	}
 
 	signature := splited[1]
 
-	log.Printf("Introspecting token: %s", signature)
-
 	accessToken, err = i.atr.FindBySignature(signature)
 	if err != nil {
-		log.Printf("Failed to introspect token: %v", err)
+		slog.Warn("Failed to introspect", "err", err)
 		return nil, err
 	}
 
 	if accessToken.IsExpired() {
-		log.Printf("Failed to introspect token: token is expired")
+		slog.Warn("Failed to introspect", "err", "token is expired")
 		i.atr.DeleteBySignature(signature)
 		return nil, errors.New("token is expired")
 	}
 
 	// TODO: scopeのチェックとか
-	log.Printf("GrantedScope %v", accessToken.GetGrantedScopes())
+	slog.Info("GrantedScope", "scopes", accessToken.GrantedScope)
 
 	return accessToken, nil
 }
