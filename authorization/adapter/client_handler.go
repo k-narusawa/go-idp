@@ -1,8 +1,8 @@
 package adapter
 
 import (
-	"github.com/k-narusawa/go-idp/authorization/adapter/middleware"
 	"github.com/k-narusawa/go-idp/authorization/usecase"
+	"github.com/k-narusawa/go-idp/middleware"
 
 	"github.com/labstack/echo/v4"
 )

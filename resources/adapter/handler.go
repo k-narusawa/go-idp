@@ -1,7 +1,7 @@
 package adapter
 
 import (
-	"github.com/k-narusawa/go-idp/resources/adapter/middleware"
+	"github.com/k-narusawa/go-idp/middleware"
 	"github.com/k-narusawa/go-idp/resources/usecase"
 
 	"github.com/labstack/echo/v4"

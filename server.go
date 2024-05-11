@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"log/slog"
+
 	"net/http"
 	"os"
 
@@ -15,6 +15,7 @@ import (
 	"github.com/k-narusawa/go-idp/authorization/oauth2"
 	ou "github.com/k-narusawa/go-idp/authorization/usecase"
 	"github.com/k-narusawa/go-idp/logger"
+	gmiddleware "github.com/k-narusawa/go-idp/middleware"
 	ra "github.com/k-narusawa/go-idp/resources/adapter"
 	ru "github.com/k-narusawa/go-idp/resources/usecase"
 
@@ -42,28 +43,7 @@ func main() {
 
 	logger := logger.New()
 
-	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogStatus:   true,
-		LogURI:      true,
-		LogError:    true,
-		HandleError: true, // forwards error to the global error handler, so it can decide appropriate status code
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-			if v.Error == nil {
-				logger.Info("REQUEST",
-					slog.String("uri", v.URI),
-					slog.Int("status", v.Status),
-				)
-			} else {
-				logger.Warn("REQUEST_ERROR",
-					slog.String("uri", v.URI),
-					slog.Int("status", v.Status),
-					slog.String("err", v.Error.Error()),
-				)
-			}
-			return nil
-		},
-	}))
-
+	e.Use(gmiddleware.NewLogger(*logger))
 	e.Use(middleware.Recover())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 
