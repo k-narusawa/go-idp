@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
@@ -104,11 +103,6 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-
-	log.Printf("credential.ID: %v\n", credential.ID)
-	log.Printf("credential.ID: %v\n", string(credential.ID))
-	uuid, _ := uuid.FromBytes(credential.ID)
-	log.Printf("uuid: %v\n", uuid.String())
 
 	err = w.wsr.DeleteByChallenge(challenge)
 	if err != nil {
