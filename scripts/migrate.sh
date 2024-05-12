@@ -1,0 +1,1 @@
+migrate -path ../migrations -database "postgres://root:password@127.0.0.1:5432/go-idp?sslmode=disable" up

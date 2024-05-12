@@ -19,7 +19,7 @@ type RefreshToken struct {
 	Scope             string    `gorm:"type:varchar(255);not null"`
 	GrantedScope      string    `gorm:"type:varchar(255);not null"`
 	FormData          string    `gorm:"type:text;not null"`
-	SessionData       string    `gorm:"type:varchar(255);not null"`
+	SessionData       string    `gorm:"type:text;not null"`
 	Subject           string    `gorm:"type:varchar(40);not null"`
 	Active            bool      `gorm:"type:boolean;not null"`
 	RequestedAudience string    `gorm:"type:varchar(255);not null"`

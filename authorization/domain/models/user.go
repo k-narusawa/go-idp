@@ -4,11 +4,9 @@ import (
 	"github.com/k-narusawa/go-idp/authorization/util"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type User struct {
-	gorm.Model
 	UserID   string `gorm:"type:varchar(36);not null;primary_key"`
 	Username string `gorm:"type:varchar(255);not null;unique"`
 	Password []byte `gorm:"type:blob"`
