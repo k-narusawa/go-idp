@@ -3,7 +3,7 @@ package models
 import (
 	"strings"
 
-	"github.com/k-narusawa/go-idp/authorization/util"
+	"github.com/k-narusawa/go-idp/util"
 	"github.com/ory/fosite"
 )
 

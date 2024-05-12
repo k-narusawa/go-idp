@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/k-narusawa/go-idp/authorization/util"
+	"github.com/k-narusawa/go-idp/util"
 	"github.com/labstack/echo/v4"
 )
 
