@@ -23,6 +23,10 @@ server:
   session:
     secret: secret
 
+db:
+  mode: postgres # postgres, sqlite3
+  dsn: host=localhost user=root password=password dbname=idp_db port=5432 sslmode=disable TimeZone=Asia/Tokyo
+
 webauthn:
   displayName: "go-idp"
   rpId: "localhost"

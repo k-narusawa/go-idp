@@ -4,36 +4,54 @@ import (
 	"github.com/k-narusawa/go-idp/authorization/domain/models"
 
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-func DbInit() {
-	// db, err := gorm.Open(sqlite.Open("idp.db"), &gorm.Config{})
-	dsn := "host=localhost user=root password=password dbname=idp_db port=5432 sslmode=disable TimeZone=Asia/Tokyo"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+var dsn string
+
+func DbInit(mode, inputDsn string) {
+	if mode == "sqlite3" {
+		dsn = "idp.db"
+	} else if mode == "postgres" {
+		dsn = inputDsn
+	}
+
+	dsn = inputDsn
+
+	var db *gorm.DB
+	var err error
+	switch mode {
+	case "sqlite3":
+		db, err = gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+
+	case "postgres":
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	}
 
 	if err != nil {
 		panic("failed to connect database")
 	}
 
-	// db.AutoMigrate(&models.Client{})
-	// db.AutoMigrate(&models.OidcSession{})
-	// db.AutoMigrate(&models.AuthorizationCode{})
-	// db.AutoMigrate(&models.AccessToken{})
-	// db.AutoMigrate(&models.RefreshToken{})
-	// db.AutoMigrate(&models.PKCE{})
-	// db.AutoMigrate(&models.LoginSkipSession{})
+	if mode == "sqlite3" {
+		db.AutoMigrate(&models.Client{})
+		db.AutoMigrate(&models.OidcSession{})
+		db.AutoMigrate(&models.AuthorizationCode{})
+		db.AutoMigrate(&models.AccessToken{})
+		db.AutoMigrate(&models.RefreshToken{})
+		db.AutoMigrate(&models.PKCE{})
+		db.AutoMigrate(&models.LoginSkipSession{})
 
-	// db.AutoMigrate(&models.User{})
-	// db.AutoMigrate(&models.WebauthnCredential{})
-	// db.AutoMigrate(&models.WebauthnSessionData{})
+		db.AutoMigrate(&models.User{})
+		db.AutoMigrate(&models.WebauthnCredential{})
+		db.AutoMigrate(&models.WebauthnSessionData{})
+	}
 
 	testUser := models.NewUser("test@example.com", "!Password0")
 	db.Save(&testUser)
 }
 
 func Connect() *gorm.DB {
-	dsn := "host=localhost user=root password=password dbname=idp_db port=5432 sslmode=disable TimeZone=Asia/Tokyo"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")

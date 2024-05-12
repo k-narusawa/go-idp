@@ -41,6 +41,10 @@ type Config struct {
 			MaxAge           int      `yaml:"maxAge"`
 		} `yaml:"cors"`
 	} `yaml:"server"`
+	DB struct {
+		Mode string `yaml:"mode"`
+		DSN  string `yaml:"dsn"`
+	} `yaml:"db"`
 	Webauthn struct {
 		DisplayName string   `yaml:"displayName"`
 		RPID        string   `yaml:"rpId"`
@@ -56,7 +60,10 @@ func main() {
 	config := loadConfig()
 
 	e := echo.New()
-	gateway.DbInit()
+	gateway.DbInit(
+		/* mode     */ config.DB.Mode,
+		/* dsn      */ config.DB.DSN,
+	)
 
 	logger := logger.New()
 
