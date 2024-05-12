@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
+	"github.com/k-narusawa/go-idp/adapter/gateways"
 	"github.com/k-narusawa/go-idp/domain/models"
 	"github.com/k-narusawa/go-idp/logger"
 
@@ -37,7 +37,7 @@ func (s *IdpStorage) CreateClient(_ context.Context, client fosite.Client) {
 		slog.String("client_id", client.GetID()),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	c := models.ClientOf(client)
 	result := db.Create(&c)
@@ -51,7 +51,7 @@ func (s *IdpStorage) GetClient(_ context.Context, id string) (fosite.Client, err
 		slog.String("id", id),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	var c models.Client
 	res := db.Where("id=?", id).First(&c)
@@ -88,7 +88,7 @@ func (s *IdpStorage) CreateOpenIDConnectSession(_ context.Context, authorizeCode
 		slog.String("signature", authorizeCode),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	is := models.IDSessionOf(authorizeCode, requester)
 
@@ -109,7 +109,7 @@ func (s *IdpStorage) GetOpenIDConnectSession(_ context.Context, authorizeCode st
 		slog.String("signature", authorizeCode),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	var is models.OidcSession
 	result := db.Where("signature=?", authorizeCode).First(&is)
@@ -143,7 +143,7 @@ func (s *IdpStorage) CreateAccessTokenSession(ctx context.Context, signature str
 	s.logger.Info("CreateAccessTokenSession",
 		slog.String("signature", signature),
 	)
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	at := models.AccessTokenOf(signature, request)
 
@@ -164,7 +164,7 @@ func (s *IdpStorage) GetAccessTokenSession(ctx context.Context, signature string
 		slog.String("signature", signature),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	var at models.AccessToken
 
@@ -194,7 +194,7 @@ func (s *IdpStorage) DeleteAccessTokenSession(ctx context.Context, signature str
 		slog.String("signature", signature),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	result := db.Where("signature=?", signature).Delete(&models.AccessToken{})
 	if result.Error != nil {
@@ -212,7 +212,7 @@ func (s *IdpStorage) CreateAuthorizeCodeSession(_ context.Context, code string, 
 		slog.String("code", code),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	ac := models.AuthorizationCodeOf(code, req)
 
@@ -231,7 +231,7 @@ func (s *IdpStorage) GetAuthorizeCodeSession(ctx context.Context, code string, s
 	s.logger.Info("GetAuthorizeCodeSession",
 		slog.String("code", code),
 	)
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	var ac models.AuthorizationCode
 	ar := db.
@@ -254,7 +254,7 @@ func (s *IdpStorage) InvalidateAuthorizeCodeSession(ctx context.Context, code st
 		slog.String("code", code),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	result := db.Where("signature=?", code).Delete(&models.AuthorizationCode{})
 	if result.Error != nil {
@@ -269,7 +269,7 @@ func (s *IdpStorage) CreateRefreshTokenSession(ctx context.Context, signature st
 	s.logger.Info("CreateRefreshTokenSession",
 		slog.String("signature", signature),
 	)
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	rt := models.RefreshTokenOf(signature, request)
 	result := db.Create(&rt)
@@ -287,7 +287,7 @@ func (s *IdpStorage) GetRefreshTokenSession(ctx context.Context, signature strin
 		slog.String("signature", signature),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	var rt models.RefreshToken
 	result := db.
@@ -313,7 +313,7 @@ func (s *IdpStorage) DeleteRefreshTokenSession(ctx context.Context, signature st
 		slog.String("signature", signature),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	result := db.Where("signature=?", signature).Delete(&models.RefreshToken{})
 	if result.Error != nil {
@@ -329,7 +329,7 @@ func (s *IdpStorage) RevokeAccessToken(ctx context.Context, requestID string) er
 		slog.String("requestID", requestID),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	result := db.Where("request_id=?", requestID).Delete(&models.AccessToken{})
 	if result.Error != nil {
@@ -345,7 +345,7 @@ func (s *IdpStorage) RevokeRefreshToken(ctx context.Context, requestID string) e
 		slog.String("requestID", requestID),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	result := db.Where("request_id=?", requestID).Delete(&models.RefreshToken{})
 	if result.Error != nil {
@@ -366,7 +366,7 @@ func (s *IdpStorage) CreatePKCERequestSession(_ context.Context, code string, re
 		slog.String("signature", code),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	pkce := models.PKCEOf(code, req)
 
@@ -384,7 +384,7 @@ func (s *IdpStorage) GetPKCERequestSession(_ context.Context, code string, _ fos
 		slog.String("signature", code),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	var pkce models.PKCE
 	result := db.Where("signature=?", code).First(&pkce)
@@ -408,7 +408,7 @@ func (s *IdpStorage) DeletePKCERequestSession(_ context.Context, code string) er
 		slog.String("signature", code),
 	)
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	result := db.Where("signature=?", code).Delete(&models.PKCE{})
 	if result.Error != nil {

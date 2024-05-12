@@ -7,15 +7,14 @@ import (
 
 	"os"
 
-	oa "github.com/k-narusawa/go-idp/authorization/adapter"
-	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
+	"github.com/k-narusawa/go-idp/adapter/controllers"
+	"github.com/k-narusawa/go-idp/adapter/gateways"
 	"github.com/k-narusawa/go-idp/authorization/oauth2"
 	ou "github.com/k-narusawa/go-idp/authorization/usecase"
 	"github.com/k-narusawa/go-idp/cert"
 	"github.com/k-narusawa/go-idp/domain/models"
 	"github.com/k-narusawa/go-idp/logger"
 	gmiddleware "github.com/k-narusawa/go-idp/middleware"
-	ra "github.com/k-narusawa/go-idp/resources/adapter"
 	ru "github.com/k-narusawa/go-idp/resources/usecase"
 	"gopkg.in/yaml.v2"
 
@@ -61,7 +60,7 @@ func main() {
 	config := loadConfig()
 
 	e := echo.New()
-	gateway.DbInit(
+	gateways.DbInit(
 		/* mode     */ config.DB.Mode,
 		/* dsn      */ config.DB.DSN,
 	)
@@ -90,7 +89,7 @@ func main() {
 		MaxAge:           config.Server.Cors.MaxAge,
 	}))
 
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	cert.GenerateKey(logger)
 	privateKey, err := oauth2.ReadPrivatekey()
@@ -111,14 +110,14 @@ func main() {
 	}
 
 	// repositories
-	ur := gateway.NewUserRepository(db)
-	wcr := gateway.NewWebauthnCredentialRepository(db)
-	wsr := gateway.NewWebauthnSessionRepository(db)
-	cr := gateway.NewClientRepository(db)
-	isr := gateway.NewIdpSessionRepository()
-	osr := gateway.NewOidcSessionRepository(db)
-	lssr := gateway.NewLoginSkipSessionRepository(db)
-	atr := gateway.NewAccessTokenRepository(db)
+	ur := gateways.NewUserRepository(db)
+	wcr := gateways.NewWebauthnCredentialRepository(db)
+	wsr := gateways.NewWebauthnSessionRepository(db)
+	cr := gateways.NewClientRepository(db)
+	isr := gateways.NewIdpSessionRepository()
+	osr := gateways.NewOidcSessionRepository(db)
+	lssr := gateways.NewLoginSkipSessionRepository(db)
+	atr := gateways.NewAccessTokenRepository(db)
 
 	// oauth2
 	oau := ou.NewAuthorization(oauth2, ur, isr, osr, lssr)
@@ -129,17 +128,17 @@ func main() {
 	olu := ou.NewLogoutUsecase(oauth2, isr, osr)
 	osu := ou.NewSessionUsecase(ur, isr, lssr)
 	owu := ou.NewAuthenticateWebauthnUsecase(oauth2, *webAuthn, ur, wcr, lssr)
-	oa.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, osu, owu)
+	controllers.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, osu, owu)
 
 	// client
 	cu := ou.NewClientUsecase(cr)
-	oa.NewClientHandler(e, cu)
+	controllers.NewClientHandler(e, cu)
 
 	// resource server
 	uu := ru.UserinfoUsecase{}
 	wu := ru.NewWebauthnUsecase(*logger, *webAuthn, ur, wcr, wsr)
 	iu := ru.NewIntrospectUsecase(*logger, atr)
-	ra.NewResourceServerHandler(e, uu, wu, iu)
+	controllers.NewResourceServerHandler(e, uu, wu, iu)
 
 	e.Logger.Fatal(e.Start(":" + config.Server.Port))
 }

@@ -1,4 +1,4 @@
-package adapter
+package controllers
 
 import (
 	"github.com/k-narusawa/go-idp/authorization/usecase"

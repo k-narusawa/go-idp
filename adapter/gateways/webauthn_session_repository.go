@@ -1,4 +1,4 @@
-package gateway
+package gateways
 
 import (
 	"github.com/k-narusawa/go-idp/domain/models"

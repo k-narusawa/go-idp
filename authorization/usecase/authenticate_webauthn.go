@@ -3,7 +3,7 @@ package usecase
 import (
 	"net/http"
 
-	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
+	"github.com/k-narusawa/go-idp/adapter/gateways"
 	"github.com/k-narusawa/go-idp/domain/models"
 	"github.com/k-narusawa/go-idp/domain/repository"
 
@@ -40,7 +40,7 @@ func NewAuthenticateWebauthnUsecase(
 }
 
 func (w *AuthenticateWebauthnUsecase) Start(c echo.Context) error {
-	db := gateway.Connect()
+	db := gateways.Connect()
 
 	tx := db.Begin()
 	defer tx.Rollback()
