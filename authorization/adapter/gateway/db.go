@@ -15,6 +15,8 @@ func DbInit(mode, inputDsn string) {
 		dsn = "idp.db"
 	} else if mode == "postgres" {
 		dsn = inputDsn
+	} else {
+		panic("invalid mode")
 	}
 
 	dsn = inputDsn
