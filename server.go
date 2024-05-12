@@ -69,10 +69,11 @@ func main() {
 
 	e.Use(gmiddleware.NewLogger(*logger))
 	e.Use(middleware.Recover())
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.Server.Session.Secret))))
 
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.Server.Session.Secret))))
 	gob.Register(&models.IdpSession{})
 	gob.Register(&webauthn.SessionData{})
+
 	e.Renderer = &TemplateRenderer{
 		templates: template.Must(template.ParseGlob("views/*.html")),
 	}
@@ -107,6 +108,7 @@ func main() {
 		panic(err)
 	}
 
+	// repositories
 	ur := gateway.NewUserRepository(db)
 	wcr := gateway.NewWebauthnCredentialRepository(db)
 	wsr := gateway.NewWebauthnSessionRepository(db)
