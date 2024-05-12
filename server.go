@@ -9,10 +9,10 @@ import (
 
 	oa "github.com/k-narusawa/go-idp/authorization/adapter"
 	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
-	"github.com/k-narusawa/go-idp/authorization/domain/models"
 	"github.com/k-narusawa/go-idp/authorization/oauth2"
 	ou "github.com/k-narusawa/go-idp/authorization/usecase"
 	"github.com/k-narusawa/go-idp/cert"
+	"github.com/k-narusawa/go-idp/domain/models"
 	"github.com/k-narusawa/go-idp/logger"
 	gmiddleware "github.com/k-narusawa/go-idp/middleware"
 	ra "github.com/k-narusawa/go-idp/resources/adapter"

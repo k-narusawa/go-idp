@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"github.com/gorilla/sessions"
-	"github.com/k-narusawa/go-idp/authorization/domain/repository"
+	"github.com/k-narusawa/go-idp/domain/repository"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/ory/fosite"

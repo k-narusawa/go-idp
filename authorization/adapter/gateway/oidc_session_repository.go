@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 
-	"github.com/k-narusawa/go-idp/authorization/domain/models"
+	"github.com/k-narusawa/go-idp/domain/models"
 	"github.com/ory/fosite"
 	"gorm.io/gorm"
 )

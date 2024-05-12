@@ -3,7 +3,7 @@ package gateway
 import (
 	"log"
 
-	"github.com/k-narusawa/go-idp/authorization/domain/models"
+	"github.com/k-narusawa/go-idp/domain/models"
 
 	"gorm.io/gorm"
 )

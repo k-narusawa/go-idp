@@ -3,7 +3,7 @@ package usecase
 import (
 	"log"
 
-	"github.com/k-narusawa/go-idp/authorization/domain/models"
+	"github.com/k-narusawa/go-idp/domain/models"
 
 	"github.com/labstack/echo/v4"
 	"github.com/ory/fosite"

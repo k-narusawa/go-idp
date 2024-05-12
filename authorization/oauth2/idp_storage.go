@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/k-narusawa/go-idp/authorization/adapter/gateway"
-	"github.com/k-narusawa/go-idp/authorization/domain/models"
+	"github.com/k-narusawa/go-idp/domain/models"
 	"github.com/k-narusawa/go-idp/logger"
 
 	"github.com/ory/fosite"

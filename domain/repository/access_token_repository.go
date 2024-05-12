@@ -1,6 +1,6 @@
 package repository
 
-import "github.com/k-narusawa/go-idp/authorization/domain/models"
+import "github.com/k-narusawa/go-idp/domain/models"
 
 type IAccessTokenRepository interface {
 	FindBySubject(subject string) (*[]models.AccessToken, error)
