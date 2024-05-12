@@ -2,11 +2,9 @@ package main
 
 import (
 	"encoding/gob"
-	"fmt"
 	"html/template"
 	"io"
 
-	"net/http"
 	"os"
 
 	oa "github.com/k-narusawa/go-idp/authorization/adapter"
@@ -18,25 +16,44 @@ import (
 	gmiddleware "github.com/k-narusawa/go-idp/middleware"
 	ra "github.com/k-narusawa/go-idp/resources/adapter"
 	ru "github.com/k-narusawa/go-idp/resources/usecase"
+	"gopkg.in/yaml.v2"
 
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/gorilla/sessions"
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func main() {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
-	}
+type Config struct {
+	Mode   string `yaml:"mode"`
+	Server struct {
+		Port    string `yaml:"port"`
+		Session struct {
+			Secret string `yaml:"secret"`
+		} `yaml:"session"`
+		Cors struct {
+			AllowedOrigins   []string `yaml:"allowedOrigins"`
+			AllowMethods     []string `yaml:"allowMethods"`
+			AllowHeaders     []string `yaml:"allowHeaders"`
+			AllowCredentials bool     `yaml:"allowCredentials"`
+			ExposeHeaders    []string `yaml:"exposeHeaders"`
+			MaxAge           int      `yaml:"maxAge"`
+		} `yaml:"cors"`
+	} `yaml:"server"`
+	Webauthn struct {
+		DisplayName string   `yaml:"displayName"`
+		RPID        string   `yaml:"rpId"`
+		RPOrigins   []string `yaml:"rpOrigins"`
+	} `yaml:"webauthn"`
+}
 
-	_, ok := os.LookupEnv("PROFILE")
-	if !ok {
-		fmt.Println("env is not set")
-	}
+type TemplateRenderer struct {
+	templates *template.Template
+}
+
+func main() {
+	config := loadConfig()
 
 	e := echo.New()
 	gateway.DbInit()
@@ -45,7 +62,7 @@ func main() {
 
 	e.Use(gmiddleware.NewLogger(*logger))
 	e.Use(middleware.Recover())
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(config.Server.Session.Secret))))
 
 	gob.Register(&models.IdpSession{})
 	gob.Register(&webauthn.SessionData{})
@@ -56,8 +73,12 @@ func main() {
 	e.Static("/static", "static")
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:3000"},
-		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+		AllowOrigins:     config.Server.Cors.AllowedOrigins,
+		AllowMethods:     config.Server.Cors.AllowMethods,
+		AllowHeaders:     config.Server.Cors.AllowHeaders,
+		AllowCredentials: config.Server.Cors.AllowCredentials,
+		ExposeHeaders:    config.Server.Cors.ExposeHeaders,
+		MaxAge:           config.Server.Cors.MaxAge,
 	}))
 
 	db := gateway.Connect()
@@ -68,9 +89,9 @@ func main() {
 	}
 
 	wconfig := &webauthn.Config{
-		RPDisplayName: "localhost",
-		RPID:          "localhost",
-		RPOrigins:     []string{"http://localhost:3000", "http://localhost:3846"},
+		RPDisplayName: config.Webauthn.DisplayName,
+		RPID:          config.Webauthn.RPID,
+		RPOrigins:     config.Webauthn.RPOrigins,
 	}
 
 	oauth2 := oauth2.NewOauth2Provider(privateKey, *logger)
@@ -109,13 +130,23 @@ func main() {
 	iu := ru.NewIntrospectUsecase(*logger, atr)
 	ra.NewResourceServerHandler(e, uu, wu, iu)
 
-	e.Logger.Fatal(e.Start(":3846"))
-}
-
-type TemplateRenderer struct {
-	templates *template.Template
+	e.Logger.Fatal(e.Start(":" + config.Server.Port))
 }
 
 func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.templates.ExecuteTemplate(w, name, data)
+}
+
+func loadConfig() (c Config) {
+	content, err := os.ReadFile("config.yml")
+	if err != nil {
+		panic(err)
+	}
+
+	var config Config
+	if err = yaml.Unmarshal(content, &config); err != nil {
+		panic(err)
+	}
+
+	return config
 }

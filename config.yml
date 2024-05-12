@@ -1,0 +1,31 @@
+mode: local
+server:
+  port: 3846
+
+  cors:
+    allowedOrigins:
+      - "http://localhost:3000"
+    allowedMethods:
+      - "OPTIONS"
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "PATCH"
+      - "DELETE"
+    allowedHeaders:
+      - "Content-Type"
+      - "Authorization"
+    exposedHeaders:
+      - "Authorization"
+    allowCredentials: true
+    maxAge: 3600
+
+  session:
+    secret: secret
+
+webauthn:
+  displayName: "go-idp"
+  rpId: "localhost"
+  rpOrigins:
+    - "http://localhost:3000"
+    - "http://localhost:3846"
