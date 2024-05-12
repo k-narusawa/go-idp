@@ -1,5 +1,11 @@
 # go-idp
 
+## マイグレーション
+
+```shell
+migrate -path ./migrations -database "postgres://root:password@127.0.0.1:5432/idp_db?sslmode=disable" up
+```
+
 ## クライアント登録
 
 ```shell
