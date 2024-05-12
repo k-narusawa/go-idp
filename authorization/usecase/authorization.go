@@ -107,15 +107,16 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, idpSession)
 		if err != nil {
 			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
-			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
-			return err
+			msg := "unexpected error occurred."
+			return c.Render(http.StatusOK, "login.html", msg)
 		}
 
 		idpSession.SetSessionID(response.GetCode())
 
 		if err := a.isr.Save(c, idpSession); err != nil {
 			log.Printf("Error occurred in CreateIdSession: %+v", err)
-			return err
+			msg := "unexpected error occurred."
+			return c.Render(http.StatusOK, "login.html", msg)
 		}
 
 		redirectTo := createRedirectTo(ar, response)
@@ -154,8 +155,8 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, idpSession)
 		if err != nil {
 			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
-			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
-			return err
+			msg := "unexpected error occurred."
+			return c.Render(http.StatusOK, "login.html", msg)
 		}
 
 		idpSession.SetSessionID(response.GetCode())
@@ -174,8 +175,7 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 
 		oidcSession, err := a.osr.FindBySignature(idpSession.SessionID)
 		if err != nil {
-			log.Printf("Error occurred in FindBySignature: %+v", err)
-			return err
+			return c.Render(http.StatusOK, "login.html", nil)
 		}
 
 		redirectURI, _ := url.Parse(req.URL.Query().Get("redirect_uri"))
@@ -206,9 +206,8 @@ func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
 		ar.SetResponseTypeHandled("code")
 		response, err := a.oauth2.NewAuthorizeResponse(ctx, ar, oidcSession.GetSession())
 		if err != nil {
-			log.Printf("Error occurred in NewAuthorizeResponse: %+v", err)
-			a.oauth2.WriteAuthorizeError(ctx, rw, ar, err)
-			return err
+			msg := "unexpected error occurred."
+			return c.Render(http.StatusOK, "login.html", msg)
 		}
 		redirectTo := createRedirectTo(ar, response)
 
