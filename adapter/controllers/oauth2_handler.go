@@ -1,55 +1,55 @@
 package controllers
 
 import (
-	"github.com/k-narusawa/go-idp/authorization/usecase"
+	"github.com/k-narusawa/go-idp/authorization/application"
 
 	"github.com/labstack/echo/v4"
 )
 
 type Oauth2Handler struct {
-	au usecase.AuthorizationUsecase
-	tu usecase.TokenUsecase
-	iu usecase.IntrospectUsecase
-	ju usecase.JWKUsecase
-	ru usecase.RevokeUsecase
-	lu usecase.LogoutUsecase
-	su usecase.SessionUsecase
-	wu usecase.AuthenticateWebauthnUsecase
+	ai application.AuthorizationInteractor
+	ti application.TokenInteractor
+	ii application.IntrospectInteractor
+	ji application.JWKInteractor
+	ri application.RevokeInteractor
+	li application.LogoutInteractor
+	si application.SessionInteractor
+	wi application.AuthenticateWebauthnInteractor
 }
 
 func NewOauth2Handler(
 	e *echo.Echo,
-	au usecase.AuthorizationUsecase,
-	tu usecase.TokenUsecase,
-	iu usecase.IntrospectUsecase,
-	ju usecase.JWKUsecase,
-	ru usecase.RevokeUsecase,
-	lu usecase.LogoutUsecase,
-	su usecase.SessionUsecase,
-	awu usecase.AuthenticateWebauthnUsecase,
+	ai application.AuthorizationInteractor,
+	ti application.TokenInteractor,
+	ii application.IntrospectInteractor,
+	ji application.JWKInteractor,
+	ri application.RevokeInteractor,
+	li application.LogoutInteractor,
+	si application.SessionInteractor,
+	awi application.AuthenticateWebauthnInteractor,
 ) {
 	handler := &Oauth2Handler{
-		au: au,
-		tu: tu,
-		iu: iu,
-		ju: ju,
-		ru: ru,
-		lu: lu,
-		su: su,
-		wu: awu,
+		ai: ai,
+		ti: ti,
+		ii: ii,
+		ji: ji,
+		ri: ri,
+		li: li,
+		si: si,
+		wi: awi,
 	}
 
-	e.GET("/oauth2/auth", handler.au.Invoke)
-	e.POST("/oauth2/auth", handler.au.Invoke)
-	e.POST("/oauth2/token", handler.tu.Invoke)
-	e.POST("/oauth2/introspect", handler.iu.Invoke)
-	e.POST("/oauth2/revoke", handler.ru.Invoke)
-	e.GET("/oauth2/certs", handler.ju.Invoke)
-	e.GET("/oauth2/logout", handler.lu.Invoke)
-	e.GET("/oauth2/session", handler.su.SkipLogin)
+	e.GET("/oauth2/auth", handler.ai.Invoke)
+	e.POST("/oauth2/auth", handler.ai.Invoke)
+	e.POST("/oauth2/token", handler.ti.Invoke)
+	e.POST("/oauth2/introspect", handler.ii.Invoke)
+	e.POST("/oauth2/revoke", handler.ri.Invoke)
+	e.GET("/oauth2/certs", handler.ji.Invoke)
+	e.GET("/oauth2/logout", handler.li.Invoke)
+	e.GET("/oauth2/session", handler.si.SkipLogin)
 
-	e.GET("/authentication/webauthn/options", handler.wu.Start)
-	e.POST("/authentication/webauthn/login", handler.wu.Finish)
+	e.GET("/authentication/webauthn/options", handler.wi.Start)
+	e.POST("/authentication/webauthn/login", handler.wi.Finish)
 
 	e.GET("/.well-known/openid-configuration", wellKnownOpenIDConfiguration)
 }

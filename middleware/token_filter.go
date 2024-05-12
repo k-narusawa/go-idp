@@ -3,12 +3,12 @@ package middleware
 import (
 	"strings"
 
-	"github.com/k-narusawa/go-idp/resources/usecase"
+	"github.com/k-narusawa/go-idp/resources/application"
 
 	"github.com/labstack/echo/v4"
 )
 
-func TokenAuthMiddleware(iu usecase.IntrospectUsecase) echo.MiddlewareFunc {
+func TokenAuthMiddleware(iu application.IntrospectInteractor) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")

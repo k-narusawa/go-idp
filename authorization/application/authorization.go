@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"log"
@@ -14,7 +14,7 @@ import (
 	"github.com/ory/fosite"
 )
 
-type AuthorizationUsecase struct {
+type AuthorizationInteractor struct {
 	oauth2 fosite.OAuth2Provider
 	ur     repository.IUserRepository
 	isr    repository.IIdpSessionRepository
@@ -22,14 +22,14 @@ type AuthorizationUsecase struct {
 	lssr   repository.ILoginSkipSessionRepository
 }
 
-func NewAuthorization(
+func NewAuthorizationInteractor(
 	oauth2 fosite.OAuth2Provider,
 	ur repository.IUserRepository,
 	isr repository.IIdpSessionRepository,
 	osr repository.IOidcSessionRepository,
 	lssr repository.ILoginSkipSessionRepository,
-) AuthorizationUsecase {
-	return AuthorizationUsecase{
+) AuthorizationInteractor {
+	return AuthorizationInteractor{
 		oauth2: oauth2,
 		ur:     ur,
 		isr:    isr,
@@ -38,7 +38,7 @@ func NewAuthorization(
 	}
 }
 
-func (a *AuthorizationUsecase) Invoke(c echo.Context) error {
+func (a *AuthorizationInteractor) Invoke(c echo.Context) error {
 	defer func() {
 		// パニック発生時にセッションを削除できるようにしておく
 		if r := recover(); r != nil {

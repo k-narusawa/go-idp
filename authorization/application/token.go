@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"log"
@@ -10,22 +10,22 @@ import (
 	"github.com/ory/fosite"
 )
 
-type TokenUsecase struct {
+type TokenInteractor struct {
 	oauth2 fosite.OAuth2Provider
 	atr    repository.IAccessTokenRepository
 }
 
-func NewTokenUsecase(
+func NewTokenInteractor(
 	oauth2 fosite.OAuth2Provider,
 	atr repository.IAccessTokenRepository,
-) TokenUsecase {
-	return TokenUsecase{
+) TokenInteractor {
+	return TokenInteractor{
 		oauth2: oauth2,
 		atr:    atr,
 	}
 }
 
-func (t *TokenUsecase) Invoke(c echo.Context) error {
+func (t *TokenInteractor) Invoke(c echo.Context) error {
 	rw := c.Response()
 	req := c.Request()
 

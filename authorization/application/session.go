@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"net/http"
@@ -9,25 +9,25 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type SessionUsecase struct {
+type SessionInteractor struct {
 	ur   repository.IUserRepository
 	isr  repository.IIdpSessionRepository
 	lssr repository.ILoginSkipSessionRepository
 }
 
-func NewSessionUsecase(
+func NewSessionInteractor(
 	ur repository.IUserRepository,
 	isr repository.IIdpSessionRepository,
 	lssr repository.ILoginSkipSessionRepository,
-) SessionUsecase {
-	return SessionUsecase{
+) SessionInteractor {
+	return SessionInteractor{
 		ur:   ur,
 		isr:  isr,
 		lssr: lssr,
 	}
 }
 
-func (s *SessionUsecase) SkipLogin(c echo.Context) error {
+func (s *SessionInteractor) SkipLogin(c echo.Context) error {
 	token := c.QueryParam("token")
 	clientId := c.QueryParam("client_id")
 	scope := c.QueryParam("scope")

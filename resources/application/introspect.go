@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"errors"
@@ -10,22 +10,22 @@ import (
 	"github.com/k-narusawa/go-idp/logger"
 )
 
-type IntrospectUsecase struct {
+type IntrospectInteractor struct {
 	logger logger.Logger
 	atr    repository.IAccessTokenRepository
 }
 
-func NewIntrospectUsecase(
+func NewIntrospectInteractor(
 	logger logger.Logger,
 	atr repository.IAccessTokenRepository,
-) IntrospectUsecase {
-	return IntrospectUsecase{
+) IntrospectInteractor {
+	return IntrospectInteractor{
 		logger: logger,
 		atr:    atr,
 	}
 }
 
-func (i *IntrospectUsecase) Introspect(token string) (accessToken *models.AccessToken, err error) {
+func (i *IntrospectInteractor) Introspect(token string) (accessToken *models.AccessToken, err error) {
 	i.logger.Info("Introspect", "token", token)
 	splited := strings.Split(token, ".")
 	if len(splited) != 2 {

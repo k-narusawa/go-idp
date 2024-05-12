@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"net/http"
@@ -15,7 +15,7 @@ import (
 	"github.com/ory/fosite"
 )
 
-type AuthenticateWebauthnUsecase struct {
+type AuthenticateWebauthnInteractor struct {
 	oauth2   fosite.OAuth2Provider
 	webauthn webauthn.WebAuthn
 	ur       repository.IUserRepository
@@ -23,14 +23,14 @@ type AuthenticateWebauthnUsecase struct {
 	lssr     repository.ILoginSkipSessionRepository
 }
 
-func NewAuthenticateWebauthnUsecase(
+func NewAuthenticateWebauthnInteractor(
 	oauth2 fosite.OAuth2Provider,
 	webauthn webauthn.WebAuthn,
 	ur repository.IUserRepository,
 	wcr repository.IWebauthnCredentialRepository,
 	lssr repository.ILoginSkipSessionRepository,
-) AuthenticateWebauthnUsecase {
-	return AuthenticateWebauthnUsecase{
+) AuthenticateWebauthnInteractor {
+	return AuthenticateWebauthnInteractor{
 		oauth2:   oauth2,
 		webauthn: webauthn,
 		ur:       ur,
@@ -39,7 +39,7 @@ func NewAuthenticateWebauthnUsecase(
 	}
 }
 
-func (w *AuthenticateWebauthnUsecase) Start(c echo.Context) error {
+func (w *AuthenticateWebauthnInteractor) Start(c echo.Context) error {
 	db := gateways.Connect()
 
 	tx := db.Begin()
@@ -71,7 +71,7 @@ func (w *AuthenticateWebauthnUsecase) Start(c echo.Context) error {
 	return c.JSON(200, options.Response)
 }
 
-func (w *AuthenticateWebauthnUsecase) Finish(c echo.Context) error {
+func (w *AuthenticateWebauthnInteractor) Finish(c echo.Context) error {
 	sess, err := session.Get("webauthn-session", c)
 	if err != nil {
 		return err

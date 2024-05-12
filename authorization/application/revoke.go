@@ -1,19 +1,19 @@
-package usecase
+package application
 
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/ory/fosite"
 )
 
-type RevokeUsecase struct {
+type RevokeInteractor struct {
 	oauth2 fosite.OAuth2Provider
 }
 
-func NewRevokeUsecase(oauth2 fosite.OAuth2Provider) RevokeUsecase {
-	return RevokeUsecase{oauth2: oauth2}
+func NewRevokeInteractor(oauth2 fosite.OAuth2Provider) RevokeInteractor {
+	return RevokeInteractor{oauth2: oauth2}
 }
 
-func (r *RevokeUsecase) Invoke(c echo.Context) error {
+func (r *RevokeInteractor) Invoke(c echo.Context) error {
 	rw := c.Response()
 	req := c.Request()
 

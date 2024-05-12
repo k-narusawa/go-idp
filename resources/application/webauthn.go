@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"net/http"
@@ -14,7 +14,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type WebauthnUsecase struct {
+type WebauthnInteractor struct {
 	logger   logger.Logger
 	webauthn webauthn.WebAuthn
 	ur       repository.IUserRepository
@@ -22,14 +22,14 @@ type WebauthnUsecase struct {
 	wsr      repository.IWebauthnSessionRepository
 }
 
-func NewWebauthnUsecase(
+func NewWebauthnInteractor(
 	logger logger.Logger,
 	webauthn webauthn.WebAuthn,
 	ur repository.IUserRepository,
 	wcr repository.IWebauthnCredentialRepository,
 	wsr repository.IWebauthnSessionRepository,
-) WebauthnUsecase {
-	return WebauthnUsecase{
+) WebauthnInteractor {
+	return WebauthnInteractor{
 		logger:   logger,
 		webauthn: webauthn,
 		ur:       ur,
@@ -38,7 +38,7 @@ func NewWebauthnUsecase(
 	}
 }
 
-func (w *WebauthnUsecase) Start(c echo.Context) error {
+func (w *WebauthnInteractor) Start(c echo.Context) error {
 	sub := c.Get(("subject")).(string)
 
 	user, err := w.ur.FindByUserID(sub)
@@ -85,7 +85,7 @@ func (w *WebauthnUsecase) Start(c echo.Context) error {
 	return c.JSON(200, options.Response)
 }
 
-func (w *WebauthnUsecase) Finish(c echo.Context) error {
+func (w *WebauthnInteractor) Finish(c echo.Context) error {
 	sub := c.Get(("subject")).(string)
 	challenge := c.QueryParam("challenge")
 
@@ -125,7 +125,7 @@ func (w *WebauthnUsecase) Finish(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (w *WebauthnUsecase) Get(c echo.Context) error {
+func (w *WebauthnInteractor) Get(c echo.Context) error {
 	sub := c.Get(("subject")).(string)
 
 	credentials, err := w.wcr.FindByUserID(sub)
@@ -171,7 +171,7 @@ type WebauthnResponseItem struct {
 	KeyName      string `json:"key_name"`
 }
 
-func (w *WebauthnUsecase) Delete(c echo.Context) error {
+func (w *WebauthnInteractor) Delete(c echo.Context) error {
 	credentialID := c.Param("credential_id")
 	// stringからuintに変換
 	credentialIDUint, _ := strconv.Atoi(credentialID)

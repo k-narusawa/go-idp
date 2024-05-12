@@ -2,31 +2,31 @@ package controllers
 
 import (
 	"github.com/k-narusawa/go-idp/middleware"
-	"github.com/k-narusawa/go-idp/resources/usecase"
+	"github.com/k-narusawa/go-idp/resources/application"
 
 	"github.com/labstack/echo/v4"
 )
 
 type ResourceServerHandler struct {
-	uu usecase.UserinfoUsecase
-	wu usecase.WebauthnUsecase
-	iu usecase.IntrospectUsecase
+	uu application.UserinfoInteractor
+	wu application.WebauthnInteractor
+	iu application.IntrospectInteractor
 }
 
 func NewResourceServerHandler(
 	e *echo.Echo,
-	uu usecase.UserinfoUsecase,
-	wu usecase.WebauthnUsecase,
-	iu usecase.IntrospectUsecase,
+	ui application.UserinfoInteractor,
+	wi application.WebauthnInteractor,
+	ii application.IntrospectInteractor,
 ) {
 	handler := &ResourceServerHandler{
-		uu: uu,
-		wu: wu,
-		iu: iu,
+		uu: ui,
+		wu: wi,
+		iu: ii,
 	}
 
 	r := e.Group("/resources")
-	r.Use(middleware.TokenAuthMiddleware(iu))
+	r.Use(middleware.TokenAuthMiddleware(ii))
 
 	r.GET("/users/userinfo", handler.uu.GetUserinfo)
 	r.GET("/users/registrations/webauthn/options", handler.wu.Start)

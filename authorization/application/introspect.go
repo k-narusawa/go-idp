@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"log"
@@ -9,15 +9,15 @@ import (
 	"github.com/ory/fosite"
 )
 
-type IntrospectUsecase struct {
+type IntrospectInteractor struct {
 	oauth2 fosite.OAuth2Provider
 }
 
-func NewIntrospectUsecase(oauth2 fosite.OAuth2Provider) IntrospectUsecase {
-	return IntrospectUsecase{oauth2: oauth2}
+func NewIntrospectInteractor(oauth2 fosite.OAuth2Provider) IntrospectInteractor {
+	return IntrospectInteractor{oauth2: oauth2}
 }
 
-func (i *IntrospectUsecase) Invoke(c echo.Context) error {
+func (i *IntrospectInteractor) Invoke(c echo.Context) error {
 	rw := c.Response()
 	req := c.Request()
 

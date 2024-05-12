@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"strings"
@@ -8,19 +8,19 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type ClientUsecase struct {
+type ClientInteractor struct {
 	cr repository.IClientRepository
 }
 
-func NewClientUsecase(
+func NewClientInteractor(
 	cr repository.IClientRepository,
-) ClientUsecase {
-	return ClientUsecase{
+) ClientInteractor {
+	return ClientInteractor{
 		cr: cr,
 	}
 }
 
-func (cu ClientUsecase) Register(c echo.Context) error {
+func (cu ClientInteractor) Register(c echo.Context) error {
 	req := new(ClientRequest)
 	if err := c.Bind(req); err != nil {
 		return err
@@ -50,7 +50,7 @@ func (cu ClientUsecase) Register(c echo.Context) error {
 	return c.JSON(201, res)
 }
 
-func (cu ClientUsecase) Get(c echo.Context) error {
+func (cu ClientInteractor) Get(c echo.Context) error {
 	clientId := c.Param("id")
 
 	client, err := cu.cr.FindClientByID(clientId)

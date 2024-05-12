@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"encoding/json"
@@ -8,13 +8,13 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
-type JWKUsecase struct{}
+type JWKInteractor struct{}
 
-func NewJWKUsecase() JWKUsecase {
-	return JWKUsecase{}
+func NewJWKInteractor() JWKInteractor {
+	return JWKInteractor{}
 }
 
-func (j *JWKUsecase) Invoke(c echo.Context) error {
+func (j *JWKInteractor) Invoke(c echo.Context) error {
 	data, _ := os.ReadFile("cert/public.pem")
 	keyset, _ := jwk.ParseKey(data, jwk.WithPEM(true))
 

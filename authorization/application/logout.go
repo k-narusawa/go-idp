@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"github.com/gorilla/sessions"
@@ -8,25 +8,25 @@ import (
 	"github.com/ory/fosite"
 )
 
-type LogoutUsecase struct {
+type LogoutInteractor struct {
 	oauth2 fosite.OAuth2Provider
 	isr    repository.IIdpSessionRepository
 	osr    repository.IOidcSessionRepository
 }
 
-func NewLogoutUsecase(
+func NewLogoutInteractor(
 	oauth2 fosite.OAuth2Provider,
 	isr repository.IIdpSessionRepository,
 	osr repository.IOidcSessionRepository,
-) LogoutUsecase {
-	return LogoutUsecase{
+) LogoutInteractor {
+	return LogoutInteractor{
 		oauth2: oauth2,
 		isr:    isr,
 		osr:    osr,
 	}
 }
 
-func (l *LogoutUsecase) Invoke(c echo.Context) error {
+func (l *LogoutInteractor) Invoke(c echo.Context) error {
 	redirectTo := c.Request().URL.Query().Get("post_logout_redirect_uri")
 
 	// DBからSessionを削除

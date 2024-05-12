@@ -1,24 +1,24 @@
 package controllers
 
 import (
-	"github.com/k-narusawa/go-idp/authorization/usecase"
+	"github.com/k-narusawa/go-idp/authorization/application"
 	"github.com/k-narusawa/go-idp/middleware"
 
 	"github.com/labstack/echo/v4"
 )
 
 type ClientHandler struct {
-	cu usecase.ClientUsecase
+	ci application.ClientInteractor
 }
 
 func NewClientHandler(
 	e *echo.Echo,
-	cu usecase.ClientUsecase,
+	ci application.ClientInteractor,
 ) {
 	handler := &ClientHandler{
-		cu: cu,
+		ci: ci,
 	}
 
-	e.POST("/admin/clients", handler.cu.Register, middleware.InternalAccess())
-	e.GET("/admin/clients/:id", handler.cu.Get, middleware.InternalAccess())
+	e.POST("/admin/clients", handler.ci.Register, middleware.InternalAccess())
+	e.GET("/admin/clients/:id", handler.ci.Get, middleware.InternalAccess())
 }

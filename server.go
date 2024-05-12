@@ -9,13 +9,13 @@ import (
 
 	"github.com/k-narusawa/go-idp/adapter/controllers"
 	"github.com/k-narusawa/go-idp/adapter/gateways"
+	oa "github.com/k-narusawa/go-idp/authorization/application"
 	"github.com/k-narusawa/go-idp/authorization/oauth2"
-	ou "github.com/k-narusawa/go-idp/authorization/usecase"
 	"github.com/k-narusawa/go-idp/cert"
 	"github.com/k-narusawa/go-idp/domain/models"
 	"github.com/k-narusawa/go-idp/logger"
 	gmiddleware "github.com/k-narusawa/go-idp/middleware"
-	ru "github.com/k-narusawa/go-idp/resources/usecase"
+	ra "github.com/k-narusawa/go-idp/resources/application"
 	"gopkg.in/yaml.v2"
 
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -120,25 +120,25 @@ func main() {
 	atr := gateways.NewAccessTokenRepository(db)
 
 	// oauth2
-	oau := ou.NewAuthorization(oauth2, ur, isr, osr, lssr)
-	otu := ou.NewTokenUsecase(oauth2, atr)
-	oiu := ou.NewIntrospectUsecase(oauth2)
-	oru := ou.NewRevokeUsecase(oauth2)
-	oju := ou.NewJWKUsecase()
-	olu := ou.NewLogoutUsecase(oauth2, isr, osr)
-	osu := ou.NewSessionUsecase(ur, isr, lssr)
-	owu := ou.NewAuthenticateWebauthnUsecase(oauth2, *webAuthn, ur, wcr, lssr)
-	controllers.NewOauth2Handler(e, oau, otu, oiu, oju, oru, olu, osu, owu)
+	oai := oa.NewAuthorizationInteractor(oauth2, ur, isr, osr, lssr)
+	oti := oa.NewTokenInteractor(oauth2, atr)
+	oii := oa.NewIntrospectInteractor(oauth2)
+	ori := oa.NewRevokeInteractor(oauth2)
+	oji := oa.NewJWKInteractor()
+	oli := oa.NewLogoutInteractor(oauth2, isr, osr)
+	osi := oa.NewSessionInteractor(ur, isr, lssr)
+	owi := oa.NewAuthenticateWebauthnInteractor(oauth2, *webAuthn, ur, wcr, lssr)
+	controllers.NewOauth2Handler(e, oai, oti, oii, oji, ori, oli, osi, owi)
 
 	// client
-	cu := ou.NewClientUsecase(cr)
+	cu := oa.NewClientInteractor(cr)
 	controllers.NewClientHandler(e, cu)
 
 	// resource server
-	uu := ru.UserinfoUsecase{}
-	wu := ru.NewWebauthnUsecase(*logger, *webAuthn, ur, wcr, wsr)
-	iu := ru.NewIntrospectUsecase(*logger, atr)
-	controllers.NewResourceServerHandler(e, uu, wu, iu)
+	ui := ra.UserinfoInteractor{}
+	wi := ra.NewWebauthnInteractor(*logger, *webAuthn, ur, wcr, wsr)
+	ii := ra.NewIntrospectInteractor(*logger, atr)
+	controllers.NewResourceServerHandler(e, ui, wi, ii)
 
 	e.Logger.Fatal(e.Start(":" + config.Server.Port))
 }
