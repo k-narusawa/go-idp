@@ -3,7 +3,6 @@ package application
 import (
 	"net/http"
 
-	"github.com/k-narusawa/go-idp/adapter/gateways"
 	"github.com/k-narusawa/go-idp/domain/models"
 	"github.com/k-narusawa/go-idp/domain/repository"
 
@@ -40,11 +39,6 @@ func NewAuthenticateWebauthnInteractor(
 }
 
 func (w *AuthenticateWebauthnInteractor) Start(c echo.Context) error {
-	db := gateways.Connect()
-
-	tx := db.Begin()
-	defer tx.Rollback()
-
 	options, sd, err := w.webauthn.BeginDiscoverableLogin(
 		webauthn.WithUserVerification(protocol.VerificationRequired),
 	)
@@ -65,8 +59,6 @@ func (w *AuthenticateWebauthnInteractor) Start(c echo.Context) error {
 	}
 	sess.Values["authentication"] = sd
 	sess.Save(c.Request(), c.Response())
-
-	tx.Commit()
 
 	return c.JSON(200, options.Response)
 }
