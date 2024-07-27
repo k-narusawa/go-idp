@@ -10,7 +10,7 @@ import (
 type ResourceServerHandler struct {
 	uu application.UserinfoInteractor
 	wu application.WebauthnInteractor
-	iu application.IntrospectInteractor
+	ii application.IntrospectInteractor
 }
 
 func NewResourceServerHandler(
@@ -22,7 +22,7 @@ func NewResourceServerHandler(
 	handler := &ResourceServerHandler{
 		uu: ui,
 		wu: wi,
-		iu: ii,
+		ii: ii,
 	}
 
 	r := e.Group("/resources")
